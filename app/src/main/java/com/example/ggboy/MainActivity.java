@@ -2,10 +2,12 @@ package com.example.ggboy;
 
 import com.example.ggboy.FilePickerActivity;
 import com.example.ggboy.Utility;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.net.Uri;
+
 import androidx.activity.result.contract.ActivityResultContracts;
 
 import android.os.FileUtils;
@@ -13,6 +15,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.os.Bundle;
 import android.content.Intent;
+import android.widget.Toast;
 
 import com.example.ggboy.databinding.ActivityMainBinding;
 
@@ -57,7 +60,10 @@ public class MainActivity extends AppCompatActivity
                 result ->
                 {
                     if (result.getResultCode() != RESULT_OK || result.getData() == null)
+                    {
+                        Toast.makeText(this, "No ROMs found", Toast.LENGTH_SHORT).show();
                         return;
+                    }
                     String selectedFile = result.getData().getStringExtra("selectedFile");
                     loadROM(selectedFile);
                 }
@@ -70,6 +76,7 @@ public class MainActivity extends AppCompatActivity
         intent.putExtra(FilePickerActivity.EXTRA_DIRECTORY, ROM_PATH);
         romPickerLauncher.launch(intent);
     }
+
     /// Adds the ROM to the internal storage, the C++ side can then access the internal storage without permission hassle
     private void addRom()
     {

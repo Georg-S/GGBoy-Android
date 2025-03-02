@@ -3,17 +3,18 @@
 #include <filesystem>
 #include <Emulator.hpp>
 
-static std::unique_ptr<ggb::Emulator> s_emulator = nullptr;
+#include "EmulatorMain.hpp"
+
+static std::unique_ptr<EmulatorMain> s_emulator = nullptr;
 
 extern "C" JNIEXPORT void JNICALL Java_com_example_ggboy_MainActivity_initEmulator(JNIEnv* env, jobject /* this */)
 {
-    s_emulator = std::make_unique<ggb::Emulator>();
+    s_emulator = std::make_unique<EmulatorMain>();
+    s_emulator->run();
 }
 
 extern "C" JNIEXPORT void JNICALL Java_com_example_ggboy_MainActivity_loadROM(JNIEnv* env, jobject /* this */, jstring romPath)
 {
     std::string pathStr = env->GetStringUTFChars(romPath, nullptr);
-
-    bool test = std::filesystem::exists(pathStr);
-    s_emulator->loadCartridge(pathStr);
+    s_emulator->setROM(pathStr);
 }

@@ -4,6 +4,21 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fexceptions")
 
 project("GGBoy-Android")
 
+set(HEADERS
+        "include/Audio.hpp"
+        "include/Video.hpp"
+        "include/InputHandler.hpp"
+        "include/EmulatorMain.hpp"
+        )
+
+set(SOURCES
+        "src/Audio.cpp"
+        "src/Video.cpp"
+        "src/InputHandler.cpp"
+        "src/EmulatorMain.cpp"
+        "src/EmulatorAPI.cpp"
+	    )
+
 add_subdirectory(GGBoy-Core)
 
 # In order to load a library into your app from Java/Kotlin, you must call
@@ -11,7 +26,10 @@ add_subdirectory(GGBoy-Core)
 # for GameActivity/NativeActivity derived applications, the same library name must be
 # used in the AndroidManifest.xml file.
 add_library(${CMAKE_PROJECT_NAME} SHARED
-        EmulatorAPI.cpp)
+        ${HEADERS}
+        ${SOURCES})
+
+target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC "include")
 
 # Specifies libraries CMake should link to your target library. You
 # can link libraries from various origins, such as libraries defined in this
