@@ -135,3 +135,13 @@ void EmulatorMain::loadROM(const std::filesystem::path& path)
 //    loadRTC();
 }
 
+bool EmulatorMain::hasNewImage() const
+{
+    return m_androidRenderer->hasNewImage();
+}
+
+std::vector<ggb::RGB> EmulatorMain::getNewImage()
+{
+    return m_androidRenderer->getCurrentFrame();
+}
+

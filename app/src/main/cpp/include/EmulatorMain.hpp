@@ -19,6 +19,8 @@ public:
     ~EmulatorMain();
     void run();
     void setROM(std::filesystem::path path);
+    bool hasNewImage() const;
+    std::vector<ggb::RGB> getNewImage();
 
 private:
     void runInThread();

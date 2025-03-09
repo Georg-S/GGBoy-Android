@@ -18,3 +18,24 @@ extern "C" JNIEXPORT void JNICALL Java_com_example_ggboy_MainActivity_loadROM(JN
     std::string pathStr = env->GetStringUTFChars(romPath, nullptr);
     s_emulator->setROM(pathStr);
 }
+
+extern "C" JNIEXPORT void JNICALL Java_com_example_ggboy_Renderer_runRenderer(JNIEnv* env, jobject obj)
+{
+    jclass rendererClass = env->GetObjectClass(obj);
+    jmethodID method = env->GetMethodID(rendererClass, "renderEmulatorImage", "([B)V");
+
+    if (s_emulator->hasNewImage())
+    {
+        auto image = s_emulator->getNewImage();
+        const auto byteCount = image.size() * sizeof(ggb::RGB);
+
+        std::vector<std::byte> bytes;
+        bytes.resize(byteCount);
+        memcpy(bytes.data(), image.data(), byteCount);
+        jbyteArray array = env->NewByteArray(byteCount);
+        env->SetByteArrayRegion(array, 0, byteCount, reinterpret_cast<jbyte*>(bytes.data()));
+
+        env->CallVoidMethod(obj, method, array);
+        env->DeleteLocalRef(array);
+    }
+}

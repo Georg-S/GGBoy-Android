@@ -1,31 +1,30 @@
 package com.example.ggboy;
 
-import com.example.ggboy.FilePickerActivity;
-import com.example.ggboy.Utility;
-
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.res.Configuration;
 import android.net.Uri;
 
 import androidx.activity.result.contract.ActivityResultContracts;
 
-import android.os.FileUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.os.Bundle;
 import android.content.Intent;
+import android.view.SurfaceView;
+import android.view.Window;
 import android.widget.Toast;
 
 import com.example.ggboy.databinding.ActivityMainBinding;
 
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-
 
 public class MainActivity extends AppCompatActivity
 {
-    public static String ROM_PATH = "ROMs";
+    private static String ROM_PATH = "ROMs";
+    private Renderer renderer = null;
     private ActivityMainBinding binding;
     private ActivityResultLauncher<Intent> romPickerLauncher;
     private ActivityResultLauncher<Intent> addRomLauncher;
@@ -107,10 +106,31 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig)
+    {
+        super.onConfigurationChanged(newConfig);
+        ActionBar bar = getSupportActionBar();
+        final boolean landscape = newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE;
+        if (renderer != null)
+            renderer.setLandscape(landscape);
+
+        if (bar != null)
+        {
+            if (landscape)
+                bar.hide();
+            else
+                bar.show();
+        }
+
+        // TODO maybe redraw frame here
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
 
+        renderer = new Renderer();
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         setContentView(R.layout.activity_main);
@@ -118,6 +138,9 @@ public class MainActivity extends AppCompatActivity
         initEmulator();
         registerFilePickerLauncher();
         registerAddRomLauncher();
+        SurfaceView surfaceView = findViewById(R.id.emulator_surface);
+        surfaceView.getHolder().addCallback(renderer);
+        onConfigurationChanged(getResources().getConfiguration());
     }
 
     public native void initEmulator();

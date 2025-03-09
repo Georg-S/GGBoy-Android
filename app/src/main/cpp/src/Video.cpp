@@ -7,11 +7,19 @@ AndroidRenderer::AndroidRenderer(int width, int height)
 
 void AndroidRenderer::renderNewFrame(const ggb::FrameBuffer& framebuffer)
 {
+    std::scoped_lock lock(m_mutex);
+    m_hasNewImage = true;
     m_image = framebuffer.getRawData();
-	m_hasNewImage = true;
 }
 
 bool AndroidRenderer::hasNewImage() const
 {
+    std::scoped_lock lock(m_mutex);
 	return m_hasNewImage;
+}
+
+std::vector<ggb::RGB> AndroidRenderer::getCurrentFrame()
+{
+    std::scoped_lock lock(m_mutex);
+    return std::move(m_image);
 }
