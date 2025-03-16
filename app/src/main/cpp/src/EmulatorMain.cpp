@@ -71,6 +71,7 @@ void EmulatorMain::runInThread()
 
     auto inputTimer = Timer(NANO_SECONDS_PER_SECOND / 100, [this]()
     {
+        m_inputHandler->updateButtonStates();
         m_inputHandler->update();
     });
 
@@ -97,8 +98,6 @@ void EmulatorMain::runInThread()
         }
 
         m_emulator->step();
-        if (m_androidRenderer->hasNewImage())
-            ; // TODO show new image
 
         stepCounter++;
         if (stepCounter < UPDATE_AFTER_STEPS)
@@ -144,4 +143,10 @@ std::vector<ggb::RGB> EmulatorMain::getNewImage()
 {
     return m_androidRenderer->getCurrentFrame();
 }
+
+void EmulatorMain::setButtonState(BUTTON buttonID, bool pressed)
+{
+    m_inputHandler->setButtonState(buttonID, pressed);
+}
+
 

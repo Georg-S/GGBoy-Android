@@ -21,6 +21,7 @@ public:
     void setROM(std::filesystem::path path);
     bool hasNewImage() const;
     std::vector<ggb::RGB> getNewImage();
+    void setButtonState(BUTTON buttonID, bool pressed);
 
 private:
     void runInThread();

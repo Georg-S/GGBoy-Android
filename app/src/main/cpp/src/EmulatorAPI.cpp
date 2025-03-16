@@ -39,3 +39,8 @@ extern "C" JNIEXPORT void JNICALL Java_com_example_ggboy_Renderer_runRenderer(JN
         env->DeleteLocalRef(array);
     }
 }
+
+extern "C" JNIEXPORT void JNICALL Java_com_example_ggboy_MainActivity_setButtonState(JNIEnv* env, jobject /* this */, jint buttonID, jboolean pressed)
+{
+    s_emulator->setButtonState(BUTTON(buttonID), pressed);
+}

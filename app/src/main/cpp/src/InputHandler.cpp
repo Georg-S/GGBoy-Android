@@ -6,50 +6,54 @@ InputHandler::InputHandler()
 {
 }
 
-InputHandler::~InputHandler()
-{
-}
-
 bool InputHandler::isAPressed()
 {
-    return false;
+    return m_emulatorStates[BUTTON::A];
 }
 
 bool InputHandler::isBPressed()
 {
-    return false;
+    return m_emulatorStates[BUTTON::B];
 }
 
 bool InputHandler::isStartPressed()
 {
-    return false;
+    return m_emulatorStates[BUTTON::START];
 }
 
 bool InputHandler::isSelectPressed()
 {
-    return false;
+    return m_emulatorStates[BUTTON::SELECT];
 }
 
 bool InputHandler::isUpPressed()
 {
-    return false;
+    return m_emulatorStates[BUTTON::UP];
 }
 
 bool InputHandler::isDownPressed()
 {
-    return false;
+    return m_emulatorStates[BUTTON::DOWN];
 }
 
 bool InputHandler::isLeftPressed()
 {
-    return false;
+    return m_emulatorStates[BUTTON::LEFT];
 }
 
 bool InputHandler::isRightPressed()
 {
-    return false;
+    return m_emulatorStates[BUTTON::RIGHT];
 }
 
-//void InputHandler::update()
-//{
-//}
+void InputHandler::setButtonState(BUTTON button, bool pressed)
+{
+    std::scoped_lock lock(m_mutex);
+    m_newStates[button] = pressed;
+}
+
+void InputHandler::updateButtonStates()
+{
+    std::scoped_lock lock(m_mutex);
+    m_emulatorStates = m_newStates;
+}
