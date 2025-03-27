@@ -30,7 +30,6 @@ public class GameButton extends AppCompatButton
         try (TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.GameButton))
         {
             shape = a.getInt(R.styleable.GameButton_buttonShape, SHAPE_OVAL);
-            a.recycle();
         }
 
         setBackground(createButtonBackground());
