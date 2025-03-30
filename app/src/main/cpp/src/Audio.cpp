@@ -1,78 +1,97 @@
 #include "Audio.hpp"
 
 static constexpr int CHANNEL_COUNT = 2;
+static constexpr int FRAME_COUNT = 256;
+static constexpr int volume = 30;
 
-Audio::Audio(ggb::SampleBuffer* sampleBuffer)
+Audio::Audio(ggb::SampleBuffer *sampleBuffer)
 {
-	initializeAudio(sampleBuffer);
+    initializeAudio(sampleBuffer);
 }
 
 Audio::~Audio()
 {
-//	SDL_QuitSubSystem(SDL_INIT_AUDIO);
+    if (m_stream)
+        AAudioStream_close(m_stream);
 }
 
 void Audio::setAudioPlaying(bool value)
 {
-//	if (value && !m_audioPlaying)
-//		SDL_PauseAudioDevice(m_deviceID, 0);
-//	else if (!value && m_audioPlaying)
-//		SDL_PauseAudioDevice(m_deviceID, 1);
-//	m_audioPlaying = value;
+    if (!value && m_audioPlaying)
+    {
+        if (AAudioStream_requestPause(m_stream) == AAUDIO_OK)
+            m_audioPlaying = false;
+        else
+            ;// TODO handle error reporting
+    }
+
+    if (value & !m_audioPlaying)
+    {
+        if (AAudioStream_requestStart(m_stream) == AAUDIO_OK)
+            m_audioPlaying = true;
+        else
+            ;// TODO handle error reporting
+    }
 }
 
 bool Audio::audioPlaying() const
 {
-	return m_audioPlaying;
+    return m_audioPlaying;
 }
 
-bool Audio::initializeAudio(ggb::SampleBuffer* sampleBuffer)
+bool Audio::initializeAudio(ggb::SampleBuffer *sampleBuffer)
 {
-//	m_data.sampleBuffer = sampleBuffer;
-//
-//	if (SDL_Init(SDL_INIT_AUDIO) < 0)
-//	{
-//		fprintf(stderr, "Error initializing SDL. SDL_Error: %s\n", SDL_GetError());
-//		return false;
-//	}
-//
-//	SDL_AudioSpec audio_spec_want = {};
-//	SDL_AudioSpec audio_spec = {};
-//	audio_spec_want.freq = ggb::STANDARD_SAMPLE_RATE;
-//	audio_spec_want.format = AUDIO_S16;
-//	audio_spec_want.channels = CHANNEL_COUNT;
-//	audio_spec_want.samples = 256;
-//	audio_spec_want.callback = emulatorAudioCallback;
-//	audio_spec_want.userdata = static_cast<void*>(&m_data);
-//
-//	m_deviceID = SDL_OpenAudioDevice(nullptr, 0, &audio_spec_want, &audio_spec, 0);
-//
-//	if (!m_deviceID)
-//	{
-//		fprintf(stderr, "Error creating SDL audio device. SDL_Error: %s\n", SDL_GetError());
-//		SDL_Quit();
-//		return false;
-//	}
-//	SDL_PauseAudioDevice(m_deviceID, 0);
-//	m_audioPlaying = true;
-//
-	return true;
+    m_data.sampleBuffer = sampleBuffer;
+
+    AAudioStreamBuilder *builder = nullptr;
+    auto result = AAudio_createStreamBuilder(&builder);
+    if (result != AAUDIO_OK)
+    {
+        // TODO handle error
+        return false;
+    }
+
+    AAudioStreamBuilder_setSampleRate(builder, ggb::STANDARD_SAMPLE_RATE);
+    AAudioStreamBuilder_setFormat(builder, AAUDIO_FORMAT_PCM_I16);
+    AAudioStreamBuilder_setChannelCount(builder, CHANNEL_COUNT);
+    AAudioStreamBuilder_setBufferCapacityInFrames(builder, FRAME_COUNT);
+    AAudioStreamBuilder_setDataCallback(builder, Audio::emulatorAudioCallback, &m_data);
+//    AAudioStreamBuilder_setPerformanceMode(builder, AAUDIO_PERFORMANCE_MODE_LOW_LATENCY);
+
+    if (AAudioStreamBuilder_openStream(builder, &m_stream) != AAUDIO_OK)
+    {
+        // TODO handle error
+        AAudioStreamBuilder_delete(builder);
+        return false;
+    }
+
+    if (AAudioStream_requestStart(m_stream) != AAUDIO_OK)
+    {
+        // TODO handle error
+        AAudioStreamBuilder_delete(builder);
+        return false;
+    }
+    m_audioPlaying = true;
+
+    AAudioStreamBuilder_delete(builder);
+
+    return true;
 }
 
-void Audio::emulatorAudioCallback(void* userdata, uint8_t* stream, int len)
+aaudio_data_callback_result_t Audio::emulatorAudioCallback(AAudioStream *stream, void *userData,
+                                                           void *outStream, int32_t numFrames)
 {
-//	AudioData* audioData = static_cast<AudioData*>(userdata);
-//	auto audioStream = reinterpret_cast<ggb::AUDIO_FORMAT*>(stream);
-//
-//	static const int volume = 15;
-//	const auto count = len / (sizeof(ggb::AUDIO_FORMAT) * CHANNEL_COUNT);
-//
-//	for (size_t sid = 0; sid < count; ++sid)
-//	{
-//		// As a default use the last read value, this prevents audio pops
-//		audioData->lastReadFrame = audioData->sampleBuffer->pop(audioData->lastReadFrame);
-//
-//		audioStream[2 * sid + 0] = audioData->lastReadFrame.leftSample * volume; /* L */
-//		audioStream[2 * sid + 1] = audioData->lastReadFrame.rightSample * volume; /* R */
-//	}
+	auto audioData = static_cast<AudioData*>(userData);
+	auto audioStream = reinterpret_cast<ggb::AUDIO_FORMAT*>(outStream);
+
+	for (size_t sid = 0; sid < numFrames; ++sid)
+	{
+		// As a default use the last read value, this prevents audio pops
+		audioData->lastReadFrame = audioData->sampleBuffer->pop(audioData->lastReadFrame);
+
+		audioStream[2 * sid + 0] = audioData->lastReadFrame.leftSample * volume; /* L */
+		audioStream[2 * sid + 1] = audioData->lastReadFrame.rightSample * volume; /* R */
+	}
+
+    return AAUDIO_CALLBACK_RESULT_CONTINUE;
 }

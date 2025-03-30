@@ -1,11 +1,11 @@
 #pragma once
 #include <Emulator.hpp>
-//#include <SDL.h>
+#include <aaudio/AAudio.h>
 
 class Audio 
 {
 public:
-	Audio(ggb::SampleBuffer* sampleBuffer);
+	explicit Audio(ggb::SampleBuffer* sampleBuffer);
 	~Audio();
 	void setAudioPlaying(bool value);
 	bool audioPlaying() const;
@@ -18,8 +18,9 @@ private:
 	};
 
 	bool initializeAudio(ggb::SampleBuffer* sampleBuffer);
-	static void emulatorAudioCallback(void* userdata, uint8_t* stream, int len);
+	static aaudio_data_callback_result_t emulatorAudioCallback(AAudioStream* stream, void* userData,
+                                                               void* audioData, int32_t numFrames);
 	AudioData m_data = {};
 	bool m_audioPlaying = false;
-//	SDL_AudioDeviceID m_deviceID = 0;
+    AAudioStream* m_stream = nullptr;
 };
