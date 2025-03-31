@@ -20,7 +20,7 @@ enum class BUTTON
 class InputHandler : public ggb::Input
 {
 public:
-    InputHandler();
+    InputHandler() = default;
 
     bool isAPressed() override;
     bool isBPressed() override;
@@ -34,6 +34,14 @@ public:
     void updateButtonStates();
 
 private:
+    bool m_a = false;
+    bool m_b = false;
+    bool m_start = false;
+    bool m_select = false;
+    bool m_up = false;
+    bool m_down = false;
+    bool m_left = false;
+    bool m_right = false;
     std::mutex m_mutex;
     std::unordered_map<BUTTON, bool> m_emulatorStates;
     std::unordered_map<BUTTON, bool> m_newStates;

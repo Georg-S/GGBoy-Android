@@ -2,7 +2,7 @@
 
 static constexpr int CHANNEL_COUNT = 2;
 static constexpr int FRAME_COUNT = 256;
-static constexpr int volume = 30;
+static constexpr int volume = 15;
 
 Audio::Audio(ggb::SampleBuffer *sampleBuffer)
 {
