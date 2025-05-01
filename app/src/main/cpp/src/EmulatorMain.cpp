@@ -65,7 +65,7 @@ void EmulatorMain::setROM(std::filesystem::path path)
 void EmulatorMain::runInThread()
 {
     static constexpr long long NANO_SECONDS_PER_SECOND = 1000000000;
-    static constexpr int UPDATE_AFTER_STEPS = 20;
+    static constexpr int UPDATE_AFTER_STEPS = 100;
 
     bool running = true;
 

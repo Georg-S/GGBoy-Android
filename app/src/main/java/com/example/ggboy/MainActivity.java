@@ -21,7 +21,7 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.example.ggboy.databinding.ActivityMainBinding;
+
 
 
 public class MainActivity extends AppCompatActivity
@@ -30,7 +30,6 @@ public class MainActivity extends AppCompatActivity
     //    private GameButton a_button;
     private static String ROM_PATH = "ROMs";
     private Renderer renderer = null;
-    private ActivityMainBinding binding;
     private ActivityResultLauncher<Intent> romPickerLauncher;
     private ActivityResultLauncher<Intent> addRomLauncher;
 
@@ -110,53 +109,11 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    @Override
-    public void onConfigurationChanged(@NonNull Configuration newConfig)
+    private void initUI()
     {
-        super.onConfigurationChanged(newConfig);
-        ActionBar bar = getSupportActionBar();
-        final boolean landscape = newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE;
-        if (landscape)
-        {
-            // TODO
-        } else
-        {
-            setContentView(R.layout.activity_main);
-        }
-
-        if (renderer != null)
-            renderer.setLandscape(landscape);
-
-        if (bar != null)
-        {
-            if (landscape)
-                bar.hide();
-            else
-                bar.show();
-        }
-
         SurfaceView surfaceView = findViewById(R.id.emulator_surface);
         surfaceView.getHolder().addCallback(renderer);
 
-        // TODO maybe redraw frame here
-    }
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
-        super.onCreate(savedInstanceState);
-
-        renderer = new Renderer();
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
-        setContentView(R.layout.activity_main);
-        initEmulator();
-
-        registerFilePickerLauncher();
-        registerAddRomLauncher();
-        SurfaceView surfaceView = findViewById(R.id.emulator_surface);
-        surfaceView.getHolder().addCallback(renderer);
-        onConfigurationChanged(getResources().getConfiguration());
         dpad = findViewById(R.id.dpad);
         dpad.setActivity(this);
 
@@ -168,7 +125,42 @@ public class MainActivity extends AppCompatActivity
         b_button.init(this, GGBoyButton.B);
         start_button.init(this, GGBoyButton.START);
         select_button.init(this, GGBoyButton.SELECT);
+    }
 
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig)
+    {
+        super.onConfigurationChanged(newConfig);
+        ActionBar bar = getSupportActionBar();
+        final boolean isLandscape = newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE;
+        setContentView(R.layout.activity_main);
+
+        if (renderer != null)
+            renderer.setLandscape(isLandscape);
+
+        if (bar != null)
+        {
+            if (isLandscape)
+                bar.hide();
+            else
+                bar.show();
+        }
+
+        initUI();
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState)
+    {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main); // Set initial layout
+
+        renderer = new Renderer();
+
+        initEmulator();
+        registerFilePickerLauncher();
+        registerAddRomLauncher();
+        initUI(); // Initialize UI components
 
         loadROM("/data/user/0/com.example.ggboy/files/ROMs/Pokemon_Gelbe_Edition.gb");
     }
