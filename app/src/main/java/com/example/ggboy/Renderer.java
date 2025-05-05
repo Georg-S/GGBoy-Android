@@ -20,7 +20,7 @@ public class Renderer implements SurfaceHolder.Callback
     private static final int GAMEBOY_IMAGE_HEIGHT = 144;
     private SurfaceHolder holder;
     private Thread thread;
-    private volatile boolean isRunning = true;
+    private volatile boolean isRunning = false;
 
     public void setLandscape(boolean value)
     {
@@ -85,12 +85,30 @@ public class Renderer implements SurfaceHolder.Callback
 
     public native void runRenderer();
 
+    public void stop()
+    {
+        isRunning = false;
+        if (thread.isAlive())
+        {
+            try
+            {
+                thread.join();
+            } catch (InterruptedException e)
+            {
+                e.printStackTrace();
+            }
+        }
+    }
+
     @Override
     public void surfaceCreated(@NonNull SurfaceHolder holder)
     {
         this.holder = holder;
-        isRunning = true;
-        run();
+        if (!isRunning)
+        {
+            isRunning = true;
+            run();
+        }
     }
 
     @Override
@@ -102,13 +120,6 @@ public class Renderer implements SurfaceHolder.Callback
     @Override
     public void surfaceDestroyed(@NonNull SurfaceHolder holder)
     {
-        isRunning = false;
-        try
-        {
-            thread.join();
-        } catch (InterruptedException e)
-        {
-            e.printStackTrace();
-        }
+        stop();
     }
 }

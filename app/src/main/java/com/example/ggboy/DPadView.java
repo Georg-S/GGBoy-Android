@@ -77,14 +77,19 @@ public class DPadView extends View
         canvas.drawRoundRect(rect, 10, 10, paint);
     }
 
-    @Override
-    public boolean performClick()
+    private void updateDDPadStates()
     {
-        super.performClick();
         activity.setButtonState(GGBoyButton.UP.getValue(), upPressed);
         activity.setButtonState(GGBoyButton.DOWN.getValue(), downPressed);
         activity.setButtonState(GGBoyButton.RIGHT.getValue(), rightPressed);
         activity.setButtonState(GGBoyButton.LEFT.getValue(), leftPressed);
+    }
+
+    @Override
+    public boolean performClick()
+    {
+        super.performClick();
+        updateDDPadStates();
         return true;
     }
 
@@ -122,6 +127,7 @@ public class DPadView extends View
 
             case MotionEvent.ACTION_UP:
                 upPressed = downPressed = leftPressed = rightPressed = false;
+                updateDDPadStates();
                 invalidate();
                 return true;
         }

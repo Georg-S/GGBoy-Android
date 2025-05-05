@@ -130,23 +130,27 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig)
     {
-        super.onConfigurationChanged(newConfig);
-        ActionBar bar = getSupportActionBar();
-        final boolean isLandscape = newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE;
-        setContentView(R.layout.activity_main);
+            super.onConfigurationChanged(newConfig);
 
-        if (renderer != null)
-            renderer.setLandscape(isLandscape);
+            if (renderer != null)
+                renderer.stop();
 
-        if (bar != null)
-        {
-            if (isLandscape)
-                bar.hide();
-            else
-                bar.show();
-        }
+            ActionBar bar = getSupportActionBar();
+            final boolean isLandscape = newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE;
+            setContentView(R.layout.activity_main);
 
-        initUI();
+            if (renderer != null)
+                renderer.setLandscape(isLandscape);
+
+            if (bar != null)
+            {
+                if (isLandscape)
+                    bar.hide();
+                else
+                    bar.show();
+            }
+
+            initUI();
     }
 
     @Override
