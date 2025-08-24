@@ -1,5 +1,17 @@
 #include "EmulatorMain.hpp"
 
+#include <regex>
+
+static std::filesystem::path cartridgePath = "";
+static const std::filesystem::path SAVE_STATE_BASE_PATH = "Savestates/";
+static const std::filesystem::path RAM_BASE_PATH = "RAM/";
+static const std::filesystem::path CARTRIDGE_DATA_BASE_PATH = "CARTRIDGE_DATA/";
+static const std::filesystem::path GAMES_BASE_PATH = "Roms/Games/";
+static const std::string RAM_FILE_ENDING = ".bin";
+static const std::string RAM_FILE_SUFFIX = "_ram";
+static const std::string RTC_FILE_SUFFIX = "_RTC";
+static const std::string SAVESTATE_FILE_ENDING = ".bin";
+
 namespace
 {
     class Timer
@@ -28,6 +40,15 @@ namespace
     };
 }
 
+template <typename TP>
+static std::time_t to_time_t(TP tp)
+{
+    using namespace std::chrono;
+    auto sctp = time_point_cast<system_clock::duration>(tp - TP::clock::now() + system_clock::now());
+
+    return system_clock::to_time_t(sctp);
+}
+
 EmulatorMain::EmulatorMain()
 {
     m_emulator = std::make_unique<ggb::Emulator>();
@@ -47,6 +68,7 @@ EmulatorMain::EmulatorMain()
 
 EmulatorMain::~EmulatorMain()
 {
+    m_quit = true;
     if (m_emulatorThread.joinable())
         m_emulatorThread.join();
 }
@@ -60,6 +82,12 @@ void EmulatorMain::setROM(std::filesystem::path path)
 {
     std::scoped_lock lock(m_emulatorEventsMutex);
     m_romToBeLoaded = std::move(path);
+}
+
+void EmulatorMain::setBasePath(std::filesystem::path path)
+{
+    std::scoped_lock lock(m_emulatorEventsMutex);
+    m_basePath = std::move(path);
 }
 
 void EmulatorMain::runInThread()
@@ -79,6 +107,12 @@ void EmulatorMain::runInThread()
     {
         std::scoped_lock lock(m_emulatorEventsMutex);
         running = !m_quit;
+        if (m_saveRAMAndRTC)
+        {
+            autoSaveCartridgeRAM();
+            autoSaveCartridgeRTC();
+            m_saveRAMAndRTC = false;
+        }
         if (m_romToBeLoaded.empty())
             return;
         loadROM(m_romToBeLoaded);
@@ -112,14 +146,14 @@ void EmulatorMain::runInThread()
         emulatorEventsTimer.update(timePast);
     }
 
-//    saveCartridgeRAM();
-//    saveCartridgeRTC();
+    autoSaveCartridgeRTC();
+    autoSaveCartridgeRAM();
 }
 
 void EmulatorMain::loadROM(const std::filesystem::path& path)
 {
-//    saveCartridgeRAM();
-//    saveCartridgeRTC();
+    autoSaveCartridgeRAM();
+    autoSaveCartridgeRTC();
 
     try
     {
@@ -130,8 +164,8 @@ void EmulatorMain::loadROM(const std::filesystem::path& path)
         // TODO handle errors (maybe a message can be send to java part of the emulator?)
     }
 
-//    loadRAM();
-//    loadRTC();
+    loadAutoSaveRAM();
+    loadAutoSaveRTC();
 }
 
 bool EmulatorMain::hasNewImage() const
@@ -149,4 +183,179 @@ void EmulatorMain::setButtonState(BUTTON buttonID, bool pressed)
     m_inputHandler->setButtonState(buttonID, pressed);
 }
 
+void EmulatorMain::saveRAM()
+{
+    m_saveRAMAndRTC = true;
+}
 
+std::string EmulatorMain::getCartridgeName()
+{
+    auto loadedPath = m_emulator->getLoadedCartridgePath();
+    if (loadedPath.empty())
+        return {};
+
+    auto gameName = loadedPath.filename().stem().u8string();
+    if (gameName.empty())
+    {
+        // TODO handle warning
+        return {};
+    }
+
+    return gameName;
+}
+
+static std::string regexEscape(std::string str)
+{
+    static const std::regex specialChars{ R"([-[\]{}()*+?.,\^$|#\s])" };
+
+    return std::regex_replace(str, specialChars, R"(\$&)");
+}
+
+/// Returns the oldest / newest file given the specified path and name (only files with '<name>1', '<name>2' etc. are used)
+static std::vector<std::pair<std::filesystem::path, std::time_t>> getFilePaths(const std::filesystem::path& base, const std::string fileName)
+{
+    if (!std::filesystem::is_directory(base))
+        return {};
+
+    std::filesystem::path result = {};
+
+    std::vector<std::pair<std::filesystem::path, std::time_t>> files;
+    for (const auto& entry : std::filesystem::directory_iterator(base))
+    {
+        if (!std::filesystem::is_regular_file(entry))
+            continue;
+
+        const auto currentFileName = entry.path().stem().u8string();
+        const auto regexString = regexEscape(fileName) + "\\d+";
+        if (!std::regex_match(currentFileName, std::regex(regexString)))
+            continue;
+
+        const auto lastEditedTime = to_time_t(std::filesystem::last_write_time(entry));
+        auto pair = std::make_pair(entry.path(), lastEditedTime);
+        files.emplace_back(std::move(pair));
+    }
+
+    std::sort(files.begin(), files.end(), [](const std::pair<std::filesystem::path, std::time_t>& lhs, const std::pair<std::filesystem::path, std::time_t>& rhs)
+    {
+        return lhs.second > rhs.second;
+    });
+
+    if (files.empty())
+        return {};
+
+    return files;
+}
+
+
+std::filesystem::path EmulatorMain::getFileSavePath(const std::string& fileName, const std::string& fileExtension)
+{
+    auto gameName = getCartridgeName();
+    if (gameName.empty())
+        return {};
+
+    std::filesystem::path path = m_basePath / CARTRIDGE_DATA_BASE_PATH;
+    try
+    {
+        if (!std::filesystem::exists(m_basePath / CARTRIDGE_DATA_BASE_PATH))
+            std::filesystem::create_directories(m_basePath / CARTRIDGE_DATA_BASE_PATH);
+
+        auto paths = getFilePaths(m_basePath / CARTRIDGE_DATA_BASE_PATH, gameName + fileName);
+        if (paths.size() <= 1)
+        {
+            auto toTestPath = m_basePath / CARTRIDGE_DATA_BASE_PATH / (gameName + (fileName + "0") + RAM_FILE_ENDING);
+            if (!paths.empty() && (paths.front().first == toTestPath))
+                path /= gameName + (fileName + "1") + RAM_FILE_ENDING;
+            else
+                path /= gameName + (fileName + "0") + RAM_FILE_ENDING;
+        }
+        else
+        {
+            // More than one file, use the oldest
+            path = paths.back().first;
+        }
+        return path;
+    }
+    catch (const std::exception& e)
+    {
+        // TODO handle error
+    }
+
+    return {};
+}
+
+
+void EmulatorMain::autoSaveCartridgeRAM()
+{
+    auto pathToWrite = getFileSavePath(RAM_FILE_SUFFIX, RAM_FILE_ENDING);
+    if (pathToWrite.empty())
+        return;
+
+    try
+    {
+        m_emulator->saveRAM(pathToWrite);
+    }
+    catch (const std::exception& e)
+    {
+        // TODO handle error
+    }
+}
+
+void EmulatorMain::autoSaveCartridgeRTC()
+{
+    auto pathToWrite = getFileSavePath(RTC_FILE_SUFFIX, RAM_FILE_ENDING);
+    if (pathToWrite.empty())
+        return;
+
+    try
+    {
+        m_emulator->saveRTC(pathToWrite);
+    }
+    catch (const std::exception& e)
+    {
+        // TODO handle error
+    }
+}
+
+void EmulatorMain::loadAutoSaveRAM()
+{
+    auto gameName = getCartridgeName();
+    if (gameName.empty())
+        return;
+
+    std::filesystem::path path = CARTRIDGE_DATA_BASE_PATH;
+    auto paths = getFilePaths(m_basePath / CARTRIDGE_DATA_BASE_PATH, gameName + RAM_FILE_SUFFIX);
+    if (paths.empty())
+        return;
+
+    const auto& pathToLoad = paths.front().first;
+    try
+    {
+        m_emulator->loadRAM(pathToLoad);
+    }
+    catch (const std::exception& e)
+    {
+        // TODO handle error
+    }
+}
+
+void EmulatorMain::loadAutoSaveRTC()
+{
+    auto gameName = getCartridgeName();
+    if (gameName.empty())
+        return;
+
+    std::filesystem::path path = CARTRIDGE_DATA_BASE_PATH;
+    auto paths = getFilePaths(m_basePath/ CARTRIDGE_DATA_BASE_PATH, gameName + RTC_FILE_SUFFIX);
+    if (paths.empty())
+        return;
+    const auto& pathToLoad = paths.front().first;
+
+    try
+    {
+        m_emulator->loadRTC(pathToLoad);
+    }
+    catch (const std::exception& e)
+    {
+        // TOOD handle error
+    }
+}

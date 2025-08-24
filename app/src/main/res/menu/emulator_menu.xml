@@ -11,6 +11,9 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/menu_save_ram"
+        android:title="Save RAM" />
+    <item
         android:id="@+id/menu_save_state"
         android:title="Save State"
         app:showAsAction="never" />

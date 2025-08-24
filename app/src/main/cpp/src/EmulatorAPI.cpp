@@ -19,6 +19,12 @@ extern "C" JNIEXPORT void JNICALL Java_com_example_ggboy_MainActivity_loadROM(JN
     s_emulator->setROM(pathStr);
 }
 
+extern "C" JNIEXPORT void JNICALL Java_com_example_ggboy_MainActivity_setBasePath(JNIEnv* env, jobject /* this */, jstring appDataPath)
+{
+    std::string pathStr = env->GetStringUTFChars(appDataPath, nullptr);
+    s_emulator->setBasePath(pathStr);
+}
+
 extern "C" JNIEXPORT void JNICALL Java_com_example_ggboy_Renderer_runRenderer(JNIEnv* env, jobject obj)
 {
     jclass rendererClass = env->GetObjectClass(obj);
@@ -43,4 +49,9 @@ extern "C" JNIEXPORT void JNICALL Java_com_example_ggboy_Renderer_runRenderer(JN
 extern "C" JNIEXPORT void JNICALL Java_com_example_ggboy_MainActivity_setButtonState(JNIEnv* env, jobject /* this */, jint buttonID, jboolean pressed)
 {
     s_emulator->setButtonState(BUTTON(buttonID), pressed);
+}
+
+extern "C" JNIEXPORT void JNICALL Java_com_example_ggboy_MainActivity_autoSaveRAMAndRTC(JNIEnv* env, jobject /* this */)
+{
+    s_emulator->saveRAM();
 }

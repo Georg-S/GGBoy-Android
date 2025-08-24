@@ -18,10 +18,11 @@ import android.content.Intent;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.Toast;
 
-
+import java.io.File;
 
 
 public class MainActivity extends AppCompatActivity
@@ -97,6 +98,8 @@ public class MainActivity extends AppCompatActivity
             openRom();
         if (id == R.id.menu_add_rom)
             addRom();
+        if (id == R.id.menu_save_ram)
+            autoSaveRAMAndRTC();
 
         return true;
     }
@@ -145,9 +148,16 @@ public class MainActivity extends AppCompatActivity
             if (bar != null)
             {
                 if (isLandscape)
+                {
                     bar.hide();
+                    var window = getWindow();
+                    window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+                }
                 else
+                {
+                    getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
                     bar.show();
+                }
             }
 
             initUI();
@@ -166,6 +176,8 @@ public class MainActivity extends AppCompatActivity
         registerAddRomLauncher();
         initUI(); // Initialize UI components
 
+        File internalFilesDir = this.getBaseContext().getFilesDir();
+        setBasePath(internalFilesDir.getPath());
         loadROM("/data/user/0/com.example.ggboy/files/ROMs/Pokemon_Gelbe_Edition.gb");
     }
 
@@ -173,4 +185,6 @@ public class MainActivity extends AppCompatActivity
 
     public native void loadROM(String romPath);
     public native void setButtonState(int buttonID, boolean pressed);
+    public native void autoSaveRAMAndRTC();
+    public native void setBasePath(String basePath);
 }
