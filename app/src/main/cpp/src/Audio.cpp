@@ -4,7 +4,8 @@ static constexpr int CHANNEL_COUNT = 2;
 static constexpr int FRAME_COUNT = 256;
 static constexpr int volume = 15;
 
-Audio::Audio(ggb::SampleBuffer *sampleBuffer)
+Audio::Audio(ggb::SampleBuffer *sampleBuffer, EmulatorMessageHandler *messageHandler)
+        : m_messageHandler(messageHandler)
 {
     initializeAudio(sampleBuffer);
 }
@@ -22,7 +23,7 @@ void Audio::setAudioPlaying(bool value)
         if (AAudioStream_requestPause(m_stream) == AAUDIO_OK)
             m_audioPlaying = false;
         else
-            ;// TODO handle error reporting
+            m_messageHandler->addMessage(EmulatorMessage::Error, "Error stopping audio");
     }
 
     if (value & !m_audioPlaying)
@@ -30,7 +31,7 @@ void Audio::setAudioPlaying(bool value)
         if (AAudioStream_requestStart(m_stream) == AAUDIO_OK)
             m_audioPlaying = true;
         else
-            ;// TODO handle error reporting
+            m_messageHandler->addMessage(EmulatorMessage::Error, "Error starting audio");
     }
 }
 
@@ -47,7 +48,7 @@ bool Audio::initializeAudio(ggb::SampleBuffer *sampleBuffer)
     auto result = AAudio_createStreamBuilder(&builder);
     if (result != AAUDIO_OK)
     {
-        // TODO handle error
+        m_messageHandler->addMessage(EmulatorMessage::Error, "Error initializing audio");
         return false;
     }
 
@@ -60,14 +61,14 @@ bool Audio::initializeAudio(ggb::SampleBuffer *sampleBuffer)
 
     if (AAudioStreamBuilder_openStream(builder, &m_stream) != AAUDIO_OK)
     {
-        // TODO handle error
+        m_messageHandler->addMessage(EmulatorMessage::Error, "Error opening audio stream");
         AAudioStreamBuilder_delete(builder);
         return false;
     }
 
     if (AAudioStream_requestStart(m_stream) != AAUDIO_OK)
     {
-        // TODO handle error
+        m_messageHandler->addMessage(EmulatorMessage::Error, "Error starting audio");
         AAudioStreamBuilder_delete(builder);
         return false;
     }
@@ -81,17 +82,17 @@ bool Audio::initializeAudio(ggb::SampleBuffer *sampleBuffer)
 aaudio_data_callback_result_t Audio::emulatorAudioCallback(AAudioStream *stream, void *userData,
                                                            void *outStream, int32_t numFrames)
 {
-	auto audioData = static_cast<AudioData*>(userData);
-	auto audioStream = reinterpret_cast<ggb::AUDIO_FORMAT*>(outStream);
+    auto audioData = static_cast<AudioData *>(userData);
+    auto audioStream = reinterpret_cast<ggb::AUDIO_FORMAT *>(outStream);
 
-	for (size_t sid = 0; sid < numFrames; ++sid)
-	{
-		// As a default use the last read value, this prevents audio pops
-		audioData->lastReadFrame = audioData->sampleBuffer->pop(audioData->lastReadFrame);
+    for (size_t sid = 0; sid < numFrames; ++sid)
+    {
+        // As a default use the last read value, this prevents audio pops
+        audioData->lastReadFrame = audioData->sampleBuffer->pop(audioData->lastReadFrame);
 
-		audioStream[2 * sid + 0] = audioData->lastReadFrame.leftSample * volume; /* L */
-		audioStream[2 * sid + 1] = audioData->lastReadFrame.rightSample * volume; /* R */
-	}
+        audioStream[2 * sid + 0] = audioData->lastReadFrame.leftSample * volume; /* L */
+        audioStream[2 * sid + 1] = audioData->lastReadFrame.rightSample * volume; /* R */
+    }
 
     return AAUDIO_CALLBACK_RESULT_CONTINUE;
 }

@@ -9,6 +9,7 @@ set(HEADERS
         "include/Video.hpp"
         "include/InputHandler.hpp"
         "include/EmulatorMain.hpp"
+        "include/EmulatorMessage.hpp"
         )
 
 set(SOURCES
@@ -17,6 +18,7 @@ set(SOURCES
         "src/InputHandler.cpp"
         "src/EmulatorMain.cpp"
         "src/EmulatorAPI.cpp"
+        "src/EmulatorMessage.cpp"
 	    )
 
 add_subdirectory(GGBoy-Core)

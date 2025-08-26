@@ -55,3 +55,37 @@ extern "C" JNIEXPORT void JNICALL Java_com_example_ggboy_MainActivity_autoSaveRA
 {
     s_emulator->saveRAM();
 }
+
+extern "C" JNIEXPORT void JNICALL Java_com_example_ggboy_Renderer_updateMessages(JNIEnv *env, jobject /* this */)
+{
+    s_emulator->getMessageHandler()->updateMessages();
+}
+
+static jobjectArray getJavaArrayMessages(EmulatorMessage::MessageType type, JNIEnv* env)
+{
+    auto messages = s_emulator->getMessageHandler()->getMessages(type);
+    auto javaArray = env->NewObjectArray(messages.size(),
+                                         env->FindClass("java/lang/String"),
+                                         env->NewStringUTF(""));
+    for (size_t i = 0; i < messages.size(); i++)
+    {
+        env->SetObjectArrayElement(javaArray, i, env->NewStringUTF(messages[i].c_str()));
+    }
+
+    return javaArray;
+}
+
+extern "C" JNIEXPORT jobjectArray JNICALL Java_com_example_ggboy_Renderer_getInfos(JNIEnv *env, jobject /* this */)
+{
+    return getJavaArrayMessages(EmulatorMessage::Info, env);
+}
+
+extern "C" JNIEXPORT jobjectArray JNICALL Java_com_example_ggboy_Renderer_getWarnings(JNIEnv *env, jobject /* this */)
+{
+    return getJavaArrayMessages(EmulatorMessage::Warning, env);
+}
+
+extern "C" JNIEXPORT jobjectArray JNICALL Java_com_example_ggboy_Renderer_getErrors(JNIEnv *env, jobject /* this */)
+{
+    return getJavaArrayMessages(EmulatorMessage::Error, env);
+}

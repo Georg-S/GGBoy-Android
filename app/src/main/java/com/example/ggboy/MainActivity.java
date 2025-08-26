@@ -5,12 +5,16 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.AlertDialog;
 import android.content.res.Configuration;
 import android.net.Uri;
+
 import com.example.ggboy.GGBoyButton;
 
 import androidx.activity.result.contract.ActivityResultContracts;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.os.Bundle;
@@ -65,7 +69,7 @@ public class MainActivity extends AppCompatActivity
                 {
                     if (result.getResultCode() != RESULT_OK || result.getData() == null)
                     {
-                        Toast.makeText(this, "No ROMs found", Toast.LENGTH_SHORT).show();
+                        displayInfo("No ROMs found");
                         return;
                     }
                     String selectedFile = result.getData().getStringExtra("selectedFile");
@@ -133,34 +137,33 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig)
     {
-            super.onConfigurationChanged(newConfig);
+        super.onConfigurationChanged(newConfig);
+        final boolean isLandscape = newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE;
 
-            if (renderer != null)
-                renderer.stop();
+        if (renderer != null)
+        {
+            renderer.stop();
+            renderer.setLandscape(isLandscape);
+        }
 
-            ActionBar bar = getSupportActionBar();
-            final boolean isLandscape = newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE;
-            setContentView(R.layout.activity_main);
+        ActionBar bar = getSupportActionBar();
+        setContentView(R.layout.activity_main);
 
-            if (renderer != null)
-                renderer.setLandscape(isLandscape);
-
-            if (bar != null)
+        if (bar != null)
+        {
+            if (isLandscape)
             {
-                if (isLandscape)
-                {
-                    bar.hide();
-                    var window = getWindow();
-                    window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-                }
-                else
-                {
-                    getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-                    bar.show();
-                }
+                bar.hide();
+                var window = getWindow();
+                window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            } else
+            {
+                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+                bar.show();
             }
+        }
 
-            initUI();
+        initUI();
     }
 
     @Override
@@ -169,22 +172,49 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main); // Set initial layout
 
-        renderer = new Renderer();
+        renderer = new Renderer(this);
+        renderer.setMainThread(new Handler(Looper.getMainLooper()));
 
         initEmulator();
         registerFilePickerLauncher();
         registerAddRomLauncher();
-        initUI(); // Initialize UI components
+        initUI();
 
         File internalFilesDir = this.getBaseContext().getFilesDir();
         setBasePath(internalFilesDir.getPath());
         loadROM("/data/user/0/com.example.ggboy/files/ROMs/Pokemon_Gelbe_Edition.gb");
     }
 
+    public void displayError(String str)
+    {
+        new AlertDialog.Builder(this)
+                .setTitle("Error")
+                .setCancelable(false)
+                .setPositiveButton("Ok", null)
+                .setMessage(str).show();
+    }
+
+    public void displayWarning(String str)
+    {
+        new AlertDialog.Builder(this)
+                .setTitle("Warning")
+                .setCancelable(false)
+                .setPositiveButton("Ok", null)
+                .setMessage(str).show();
+    }
+
+    public void displayInfo(String str)
+    {
+        Toast.makeText(this, str, Toast.LENGTH_SHORT).show();
+    }
+
     public native void initEmulator();
 
     public native void loadROM(String romPath);
+
     public native void setButtonState(int buttonID, boolean pressed);
+
     public native void autoSaveRAMAndRTC();
+
     public native void setBasePath(String basePath);
 }

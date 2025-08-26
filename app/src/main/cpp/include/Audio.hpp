@@ -2,10 +2,12 @@
 #include <Emulator.hpp>
 #include <aaudio/AAudio.h>
 
+#include "EmulatorMessage.hpp"
+
 class Audio 
 {
 public:
-	explicit Audio(ggb::SampleBuffer* sampleBuffer);
+	explicit Audio(ggb::SampleBuffer* sampleBuffer, EmulatorMessageHandler* messageHandler);
 	~Audio();
 	void setAudioPlaying(bool value);
 	bool audioPlaying() const;
@@ -23,4 +25,5 @@ private:
 	AudioData m_data = {};
 	bool m_audioPlaying = false;
     AAudioStream* m_stream = nullptr;
+    EmulatorMessageHandler* m_messageHandler = nullptr;
 };

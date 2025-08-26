@@ -51,8 +51,9 @@ static std::time_t to_time_t(TP tp)
 
 EmulatorMain::EmulatorMain()
 {
+    m_messageHandler = std::make_unique<EmulatorMessageHandler>();
     m_emulator = std::make_unique<ggb::Emulator>();
-    m_audioHandler = std::make_unique<Audio>(m_emulator->getSampleBuffer());
+    m_audioHandler = std::make_unique<Audio>(m_emulator->getSampleBuffer(), m_messageHandler.get());
     auto inputHandler = std::make_unique<InputHandler>();
     m_inputHandler = inputHandler.get();
 
@@ -158,10 +159,11 @@ void EmulatorMain::loadROM(const std::filesystem::path& path)
     try
     {
         m_emulator->loadCartridge(path);
+        m_messageHandler->addMessage(EmulatorMessage::Info, "ROM loaded");
     }
     catch (const std::exception& e)
     {
-        // TODO handle errors (maybe a message can be send to java part of the emulator?)
+        m_messageHandler->addMessage(EmulatorMessage::Error, "Error loading ROM: " + std::string(e.what()));
     }
 
     loadAutoSaveRAM();
@@ -197,14 +199,15 @@ std::string EmulatorMain::getCartridgeName()
     auto gameName = loadedPath.filename().stem().u8string();
     if (gameName.empty())
     {
-        // TODO handle warning
+        m_messageHandler->addMessage(EmulatorMessage::Warning, "Unable to get cartridge name, "
+                                             "even though a cartridge is loaded");
         return {};
     }
 
     return gameName;
 }
 
-static std::string regexEscape(std::string str)
+static std::string regexEscape(const std::string& str)
 {
     static const std::regex specialChars{ R"([-[\]{}()*+?.,\^$|#\s])" };
 
@@ -212,7 +215,7 @@ static std::string regexEscape(std::string str)
 }
 
 /// Returns the oldest / newest file given the specified path and name (only files with '<name>1', '<name>2' etc. are used)
-static std::vector<std::pair<std::filesystem::path, std::time_t>> getFilePaths(const std::filesystem::path& base, const std::string fileName)
+static std::vector<std::pair<std::filesystem::path, std::time_t>> getFilePaths(const std::filesystem::path& base, const std::string& fileName)
 {
     if (!std::filesystem::is_directory(base))
         return {};
@@ -277,7 +280,7 @@ std::filesystem::path EmulatorMain::getFileSavePath(const std::string& fileName,
     }
     catch (const std::exception& e)
     {
-        // TODO handle error
+        m_messageHandler->addMessage(EmulatorMessage::Error, "Error finding a valid file path: " + std::string(e.what()));
     }
 
     return {};
@@ -293,10 +296,11 @@ void EmulatorMain::autoSaveCartridgeRAM()
     try
     {
         m_emulator->saveRAM(pathToWrite);
+        m_messageHandler->addMessage(EmulatorMessage::Info, "RAM saved");
     }
     catch (const std::exception& e)
     {
-        // TODO handle error
+        m_messageHandler->addMessage(EmulatorMessage::Error, "Error saving RAM: " + std::string(e.what()));
     }
 }
 
@@ -312,7 +316,7 @@ void EmulatorMain::autoSaveCartridgeRTC()
     }
     catch (const std::exception& e)
     {
-        // TODO handle error
+        m_messageHandler->addMessage(EmulatorMessage::Error, "Error saving real time clock: " + std::string(e.what()));
     }
 }
 
@@ -334,7 +338,7 @@ void EmulatorMain::loadAutoSaveRAM()
     }
     catch (const std::exception& e)
     {
-        // TODO handle error
+        m_messageHandler->addMessage(EmulatorMessage::Error, "Error loading RAM: " + std::string(e.what()));
     }
 }
 
@@ -356,6 +360,11 @@ void EmulatorMain::loadAutoSaveRTC()
     }
     catch (const std::exception& e)
     {
-        // TOOD handle error
+        m_messageHandler->addMessage(EmulatorMessage::Error, "Error loading real time clock: " + std::string(e.what()));
     }
+}
+
+EmulatorMessageHandler *EmulatorMain::getMessageHandler()
+{
+    return m_messageHandler.get();
 }

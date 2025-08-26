@@ -1,9 +1,7 @@
 package com.example.ggboy;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.view.SurfaceHolder;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.Color;
@@ -15,12 +13,28 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Renderer implements SurfaceHolder.Callback
 {
-    private AtomicBoolean landscape = new AtomicBoolean(false);
     private static final int GAMEBOY_IMAGE_WIDTH = 160;
     private static final int GAMEBOY_IMAGE_HEIGHT = 144;
+    private static final int UPDATE_MESSAGES_AFTER_STEPS = 30;
+    private AtomicBoolean landscape = new AtomicBoolean(false);
     private SurfaceHolder holder;
     private Thread thread;
     private volatile boolean isRunning = false;
+    private android.os.Handler mainThread = null;
+    // Not sure how the access of this works with threading, therefore this should only be used when running some code in the main thread
+    private MainActivity mainActivity = null;
+    // We don't want to update the messages in every tick (performance overhead)
+    private int updateMessagesCounter = 0;
+
+    public Renderer(MainActivity activity)
+    {
+        this.mainActivity = activity;
+    }
+
+    public void setMainThread(android.os.Handler handler)
+    {
+        this.mainThread = handler;
+    }
 
     public void setLandscape(boolean value)
     {
@@ -32,9 +46,47 @@ public class Renderer implements SurfaceHolder.Callback
         thread = new Thread(() ->
         {
             while (isRunning)
+            {
                 runRenderer();
+                handleEmulatorMessages();
+            }
         });
         thread.start();
+    }
+
+    // Checks for and displays errors / warnings / infos coming from the emulator thread
+    private void handleEmulatorMessages()
+    {
+        updateMessagesCounter++;
+        if (updateMessagesCounter >= UPDATE_MESSAGES_AFTER_STEPS)
+        {
+            updateMessagesCounter = 0;
+            updateMessages();
+            var infos = getInfos();
+            var warnings = getWarnings();
+            var errors = getErrors();
+            for (var info : infos)
+            {
+                mainThread.post(()->
+                {
+                    mainActivity.displayInfo(info);
+                });
+            }
+            for (var warning : warnings)
+            {
+                mainThread.post(()->
+                {
+                    mainActivity.displayWarning(warning);
+                });
+            }
+            for (var error : errors)
+            {
+                mainThread.post(()->
+                {
+                    mainActivity.displayError(error);
+                });
+            }
+        }
     }
 
     private float calculateMaxUniformScale(float screenWidth, float screenHeight)
@@ -83,8 +135,6 @@ public class Renderer implements SurfaceHolder.Callback
         holder.unlockCanvasAndPost(canvas);
     }
 
-    public native void runRenderer();
-
     public void stop()
     {
         isRunning = false;
@@ -122,4 +172,10 @@ public class Renderer implements SurfaceHolder.Callback
     {
         stop();
     }
+
+    public native void runRenderer();
+    private native void updateMessages();
+    public native String[] getInfos();
+    public native String[] getWarnings();
+    public native String[] getErrors();
 }
