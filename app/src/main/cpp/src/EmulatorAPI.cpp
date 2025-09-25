@@ -89,3 +89,7 @@ extern "C" JNIEXPORT jobjectArray JNICALL Java_com_example_ggboy_Renderer_getErr
 {
     return getJavaArrayMessages(EmulatorMessage::Error, env);
 }
+extern "C" JNIEXPORT void JNICALL Java_com_example_ggboy_MainActivity_pauseEmulator(JNIEnv *env, jobject /* this */, jboolean pause)
+{
+    s_emulator->setPause(pause);
+}

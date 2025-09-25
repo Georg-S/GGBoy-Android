@@ -185,6 +185,24 @@ public class MainActivity extends AppCompatActivity
         loadROM("/data/user/0/com.example.ggboy/files/ROMs/Pokemon_Gelbe_Edition.gb");
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        pauseEmulator(true);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        pauseEmulator(true);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        pauseEmulator(false);
+    }
+
     public void displayError(String str)
     {
         new AlertDialog.Builder(this)
@@ -217,4 +235,6 @@ public class MainActivity extends AppCompatActivity
     public native void autoSaveRAMAndRTC();
 
     public native void setBasePath(String basePath);
+
+    public native void pauseEmulator(boolean pause);
 }

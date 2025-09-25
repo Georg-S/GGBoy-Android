@@ -49,6 +49,12 @@ public class Renderer implements SurfaceHolder.Callback
             {
                 runRenderer();
                 handleEmulatorMessages();
+
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException ignored) {
+                    isRunning = false;
+                }
             }
         });
         thread.start();

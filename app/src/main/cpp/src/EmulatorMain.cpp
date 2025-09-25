@@ -114,6 +114,20 @@ void EmulatorMain::runInThread()
             autoSaveCartridgeRTC();
             m_saveRAMAndRTC = false;
         }
+        if (m_pauseRequest)
+        {
+            m_pauseRequest = false;
+            if (m_pauseValue)
+            {
+                m_emulator->pause();
+                m_audioHandler->setAudioPlaying(false);
+            }
+            else
+            {
+                m_emulator->resume();
+                m_audioHandler->setAudioPlaying(true);
+            }
+        }
         if (m_romToBeLoaded.empty())
             return;
         loadROM(m_romToBeLoaded);
@@ -188,6 +202,13 @@ void EmulatorMain::setButtonState(BUTTON buttonID, bool pressed)
 void EmulatorMain::saveRAM()
 {
     m_saveRAMAndRTC = true;
+}
+
+void EmulatorMain::setPause(bool pause)
+{
+    std::scoped_lock lock(m_emulatorEventsMutex);
+    m_pauseRequest = true;
+    m_pauseValue = pause;
 }
 
 std::string EmulatorMain::getCartridgeName()

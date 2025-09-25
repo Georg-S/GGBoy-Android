@@ -26,6 +26,7 @@ public:
     void setButtonState(BUTTON buttonID, bool pressed);
     void saveRAM();
     EmulatorMessageHandler* getMessageHandler();
+    void setPause(bool pause);
 
 private:
     void runInThread();
@@ -45,6 +46,8 @@ private:
     AndroidRenderer* m_androidRenderer = nullptr;
     std::atomic<bool> m_quit = false;
     std::atomic<bool> m_saveRAMAndRTC = false;
+    bool m_pauseRequest = false;
+    bool m_pauseValue = false;
     std::filesystem::path m_romToBeLoaded;
     std::filesystem::path m_basePath;
     std::mutex m_inputMutex;
