@@ -67,13 +67,18 @@ public class MainActivity extends AppCompatActivity
                 new ActivityResultContracts.StartActivityForResult(),
                 result ->
                 {
-                    if (result.getResultCode() != RESULT_OK || result.getData() == null)
+                    int resultCode = result.getResultCode();
+                    if (resultCode == RESULT_OK && result.getData() != null)
                     {
-                        displayInfo("No ROMs found");
+                        String selectedFile = result.getData().getStringExtra("selectedFile");
+                        loadROM(selectedFile);
                         return;
                     }
-                    String selectedFile = result.getData().getStringExtra("selectedFile");
-                    loadROM(selectedFile);
+                    else if (resultCode == RESULT_CANCELED)
+                    {
+                        return;
+                    }
+                    displayInfo("No ROMs found");
                 }
         );
     }
