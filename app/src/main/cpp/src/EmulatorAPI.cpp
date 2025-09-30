@@ -93,3 +93,16 @@ extern "C" JNIEXPORT void JNICALL Java_com_example_ggboy_MainActivity_pauseEmula
 {
     s_emulator->setPause(pause);
 }
+
+extern "C" JNIEXPORT void JNICALL Java_com_example_ggboy_MainActivity_saveSaveState(JNIEnv* env, jobject /* this */, jstring saveStatePath, jstring imagePath)
+{
+    auto cstr1 = env->GetStringUTFChars(saveStatePath, nullptr);
+    auto cstr2 = env->GetStringUTFChars(imagePath, nullptr);;
+    std::string saveState = cstr1;
+    std::string image = cstr2;
+
+    s_emulator->saveSaveStateAndLastImage(saveState, image);
+
+    env->ReleaseStringUTFChars(saveStatePath, cstr1);
+    env->ReleaseStringUTFChars(imagePath, cstr2);
+}

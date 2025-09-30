@@ -27,6 +27,7 @@ public:
     void saveRAM();
     EmulatorMessageHandler* getMessageHandler();
     void setPause(bool pause);
+    void saveSaveStateAndLastImage(std::string saveStatePath, std::string imagePath);
 
 private:
     void runInThread();
@@ -50,6 +51,8 @@ private:
     bool m_pauseValue = false;
     std::filesystem::path m_romToBeLoaded;
     std::filesystem::path m_basePath;
+    std::filesystem::path m_toSaveSaveStatePath;
+    std::filesystem::path m_toSaveImagePath;
     std::mutex m_inputMutex;
     std::mutex m_emulatorEventsMutex;
 };

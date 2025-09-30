@@ -22,5 +22,6 @@
             </intent-filter>
         </activity>
         <activity android:name=".FilePickerActivity" />
+        <activity android:name=".SelectSaveStateActivity" />
     </application>
 </manifest>

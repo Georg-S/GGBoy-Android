@@ -11,6 +11,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import android.database.Cursor;
 import android.provider.OpenableColumns;
 
@@ -99,5 +103,19 @@ public class Utility
             }
         }
         return true;
+    }
+
+    public static ArrayList<File> getFilesInDirectory(String directoryPath)
+    {
+        var result = new ArrayList<File>();
+
+        File directory = new File(directoryPath);
+        File[] files = directory.listFiles();
+        if (files == null)
+            return result;
+
+        result.addAll(Arrays.asList(files));
+
+        return result;
     }
 }

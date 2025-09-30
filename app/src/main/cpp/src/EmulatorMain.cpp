@@ -114,6 +114,18 @@ void EmulatorMain::runInThread()
             autoSaveCartridgeRTC();
             m_saveRAMAndRTC = false;
         }
+        if (!m_toSaveSaveStatePath.empty())
+        {
+            assert(!m_toSaveImagePath.empty());
+            const bool saveStateWritten = m_emulator->saveEmulatorState(m_toSaveSaveStatePath);
+            if (!saveStateWritten)
+                m_messageHandler->addMessage(EmulatorMessage::Warning, "Was not able to write the save state");
+            if (saveStateWritten && !m_androidRenderer->writeLastImage(m_toSaveImagePath))
+                m_messageHandler->addMessage(EmulatorMessage::Warning, "Was not able to write the save state image");
+
+            m_toSaveSaveStatePath.clear();
+            m_toSaveImagePath.clear();
+        }
         if (m_pauseRequest)
         {
             m_pauseRequest = false;
@@ -209,6 +221,13 @@ void EmulatorMain::setPause(bool pause)
     std::scoped_lock lock(m_emulatorEventsMutex);
     m_pauseRequest = true;
     m_pauseValue = pause;
+}
+
+void EmulatorMain::saveSaveStateAndLastImage(std::string saveStatePath, std::string imagePath)
+{
+    std::scoped_lock lock(m_emulatorEventsMutex);
+    m_toSaveSaveStatePath = std::move(saveStatePath);
+    m_toSaveImagePath = std::move(imagePath);
 }
 
 std::string EmulatorMain::getCartridgeName()

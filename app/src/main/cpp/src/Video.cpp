@@ -1,7 +1,6 @@
 #include "Video.hpp"
 
 AndroidRenderer::AndroidRenderer(int width, int height)
-	: m_width(width), m_height(height)
 {
 }
 
@@ -21,5 +20,29 @@ bool AndroidRenderer::hasNewImage() const
 std::vector<ggb::RGB> AndroidRenderer::getCurrentFrame()
 {
     std::scoped_lock lock(m_mutex);
-    return std::move(m_image);
+    return m_image;
+}
+
+bool AndroidRenderer::writeLastImage(const std::filesystem::path &path)
+{
+    auto image = getCurrentFrame();
+
+    if (m_image.empty())
+        return false;
+
+    auto dir = path.parent_path();
+    std::error_code ec;
+    if (!std::filesystem::exists(path, ec))
+    {
+        std::filesystem::create_directories(dir, ec);
+        if (ec)
+            return false;
+    }
+
+    std::ofstream outFile(path, std::ios::binary);
+    if (!outFile)
+        return false;
+
+    outFile.write(reinterpret_cast<const char*>(image.data()), image.size() * sizeof(decltype(image)::value_type));
+    return true;
 }

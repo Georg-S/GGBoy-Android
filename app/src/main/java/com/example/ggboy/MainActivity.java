@@ -9,8 +9,6 @@ import android.app.AlertDialog;
 import android.content.res.Configuration;
 import android.net.Uri;
 
-import com.example.ggboy.GGBoyButton;
-
 import androidx.activity.result.contract.ActivityResultContracts;
 
 import android.os.Handler;
@@ -19,11 +17,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.os.Bundle;
 import android.content.Intent;
-import android.view.MotionEvent;
 import android.view.SurfaceView;
-import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.Toast;
 
 import java.io.File;
@@ -33,10 +28,13 @@ public class MainActivity extends AppCompatActivity
 {
     private DPadView dpad;
     //    private GameButton a_button;
-    private static String ROM_PATH = "ROMs";
+    private final String ROM_PATH = "ROMs";
+    private final String SAVE_STATE_DIR = "SaveStates";
+    private final String SAVE_STATE_THUMBNAIL_DIR = "SaveStatesThumbnail";
     private Renderer renderer = null;
     private ActivityResultLauncher<Intent> romPickerLauncher;
     private ActivityResultLauncher<Intent> addRomLauncher;
+    private ActivityResultLauncher<Intent> saveSaveStateLauncher;
 
     // Used to load the 'GGBoy-Android' library on application startup.
     static
@@ -83,6 +81,28 @@ public class MainActivity extends AppCompatActivity
         );
     }
 
+    private void registerSaveSaveState() {
+        saveSaveStateLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result ->
+                {
+                    int resultCode = result.getResultCode();
+                    if (resultCode == RESULT_OK && result.getData() != null)
+                    {
+                        String filePath = result.getData().getStringExtra(SelectSaveStateActivity.EXTRA_OUT_FILE_PATH);
+                        String thumbnailPath = result.getData().getStringExtra(SelectSaveStateActivity.EXTRA_OUT_THUMBNAIL_PATH);
+                        saveSaveState(filePath, thumbnailPath);
+                        return;
+                    }
+                    else if (resultCode == RESULT_CANCELED)
+                    {
+                        return;
+                    }
+                    displayInfo("Something went wrong selecting a savestate");
+                }
+        );
+    }
+
     private void openRom()
     {
         Intent intent = new Intent(this, FilePickerActivity.class);
@@ -99,6 +119,15 @@ public class MainActivity extends AppCompatActivity
         addRomLauncher.launch(intent);
     }
 
+    private void saveSaveState()
+    {
+        Intent intent = new Intent(this, SelectSaveStateActivity.class);
+        intent.putExtra(SelectSaveStateActivity.EXTRA_SAVE_STATE_DIRECTORY, SAVE_STATE_DIR);
+        intent.putExtra(SelectSaveStateActivity.EXTRA_SAVE_STATE_THUMBNAIL_DIRECTORY, SAVE_STATE_THUMBNAIL_DIR);
+        intent.putExtra(SelectSaveStateActivity.EXTRA_IS_LOADING, false);
+        saveSaveStateLauncher.launch(intent);
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item)
     {
@@ -109,6 +138,8 @@ public class MainActivity extends AppCompatActivity
             addRom();
         if (id == R.id.menu_save_ram)
             autoSaveRAMAndRTC();
+        if (id == R.id.menu_save_state)
+            saveSaveState();
 
         return true;
     }
@@ -183,6 +214,7 @@ public class MainActivity extends AppCompatActivity
         initEmulator();
         registerFilePickerLauncher();
         registerAddRomLauncher();
+        registerSaveSaveState();
         initUI();
 
         File internalFilesDir = this.getBaseContext().getFilesDir();
@@ -192,18 +224,21 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onPause() {
+        renderer.setPaused(true);
         super.onPause();
         pauseEmulator(true);
     }
 
     @Override
     protected void onStop() {
+        renderer.setPaused(true);
         super.onStop();
         pauseEmulator(true);
     }
 
     @Override
     protected void onResume() {
+        renderer.setPaused(false);
         super.onResume();
         pauseEmulator(false);
     }
@@ -242,4 +277,5 @@ public class MainActivity extends AppCompatActivity
     public native void setBasePath(String basePath);
 
     public native void pauseEmulator(boolean pause);
+    public native void saveSaveState(String saveStatePath, String imagePath);
 }

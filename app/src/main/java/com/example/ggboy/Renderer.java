@@ -10,6 +10,7 @@ import android.graphics.Color;
 import androidx.annotation.NonNull;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Renderer implements SurfaceHolder.Callback
 {
@@ -25,6 +26,8 @@ public class Renderer implements SurfaceHolder.Callback
     private MainActivity mainActivity = null;
     // We don't want to update the messages in every tick (performance overhead)
     private int updateMessagesCounter = 0;
+    private final ReentrantLock lock = new ReentrantLock();
+    private boolean paused = false;
 
     public Renderer(MainActivity activity)
     {
@@ -47,14 +50,19 @@ public class Renderer implements SurfaceHolder.Callback
         {
             while (isRunning)
             {
-                runRenderer();
-                handleEmulatorMessages();
-
                 try {
                     Thread.sleep(1);
                 } catch (InterruptedException ignored) {
                     isRunning = false;
                 }
+
+                lock.lock();
+                if (!paused)
+                {
+                    runRenderer();
+                    handleEmulatorMessages();
+                }
+                lock.unlock();
             }
         });
         thread.start();
@@ -102,6 +110,26 @@ public class Renderer implements SurfaceHolder.Callback
         return Math.min(fac1, fac2);
     }
 
+    public static Bitmap createBitMapFromEmulatorBinaryImage(byte[] rawData)
+    {
+        Bitmap bitmap = Bitmap.createBitmap(GAMEBOY_IMAGE_WIDTH, GAMEBOY_IMAGE_HEIGHT, Bitmap.Config.ARGB_8888);
+
+        for (int y = 0; y < GAMEBOY_IMAGE_HEIGHT; y++)
+        {
+            for (int x = 0; x < GAMEBOY_IMAGE_WIDTH; x++)
+            {
+                int offset = (y * GAMEBOY_IMAGE_WIDTH + x) * 4;
+                int red = rawData[offset] & 0xFF;
+                int green = rawData[offset + 1] & 0xFF;
+                int blue = rawData[offset + 2] & 0xFF;
+                int color = Color.rgb(red, green, blue);
+                bitmap.setPixel(x, y, color);
+            }
+        }
+
+        return bitmap;
+    }
+
     public void renderEmulatorImage(byte[] rgbBytes)
     {
         if (rgbBytes.length == 0)
@@ -113,21 +141,7 @@ public class Renderer implements SurfaceHolder.Callback
         int screenWidth = canvas.getWidth();
         int screenHeight = canvas.getHeight();
         final float scaling = calculateMaxUniformScale(screenWidth, screenHeight);
-
-        Bitmap bitmap = Bitmap.createBitmap(GAMEBOY_IMAGE_WIDTH, GAMEBOY_IMAGE_HEIGHT, Bitmap.Config.ARGB_8888);
-
-        for (int y = 0; y < GAMEBOY_IMAGE_HEIGHT; y++)
-        {
-            for (int x = 0; x < GAMEBOY_IMAGE_WIDTH; x++)
-            {
-                int offset = (y * GAMEBOY_IMAGE_WIDTH + x) * 4;
-                int red = rgbBytes[offset] & 0xFF;
-                int green = rgbBytes[offset + 1] & 0xFF;
-                int blue = rgbBytes[offset + 2] & 0xFF;
-                int color = Color.rgb(red, green, blue);
-                bitmap.setPixel(x, y, color);
-            }
-        }
+        var bitmap = createBitMapFromEmulatorBinaryImage(rgbBytes);
 
         int imageWidth = (int) (GAMEBOY_IMAGE_WIDTH * scaling);
         int imageHeight = (int) (GAMEBOY_IMAGE_HEIGHT * scaling);
@@ -154,6 +168,13 @@ public class Renderer implements SurfaceHolder.Callback
                 e.printStackTrace();
             }
         }
+    }
+
+    public void setPaused(boolean paused)
+    {
+        lock.lock();
+        this.paused = paused;
+        lock.unlock();
     }
 
     @Override
