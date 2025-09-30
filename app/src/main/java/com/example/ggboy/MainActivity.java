@@ -35,6 +35,7 @@ public class MainActivity extends AppCompatActivity
     private ActivityResultLauncher<Intent> romPickerLauncher;
     private ActivityResultLauncher<Intent> addRomLauncher;
     private ActivityResultLauncher<Intent> saveSaveStateLauncher;
+    private ActivityResultLauncher<Intent> loadSaveStateLauncher;
 
     // Used to load the 'GGBoy-Android' library on application startup.
     static
@@ -103,6 +104,32 @@ public class MainActivity extends AppCompatActivity
         );
     }
 
+    private void registerLoadSaveState() {
+        loadSaveStateLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result ->
+                {
+                    int resultCode = result.getResultCode();
+                    if (resultCode == RESULT_OK && result.getData() != null)
+                    {
+                        String filePath = result.getData().getStringExtra(SelectSaveStateActivity.EXTRA_OUT_FILE_PATH);
+                        loadSaveState(filePath);
+                        return;
+                    }
+                    else if (resultCode == RESULT_CANCELED)
+                    {
+                        return;
+                    }
+                    else if (resultCode == SelectSaveStateActivity.NO_FILES)
+                    {
+                        displayInfo("No save states found");
+                        return;
+                    }
+                    displayInfo("Something went wrong selecting a savestate");
+                }
+        );
+    }
+
     private void openRom()
     {
         Intent intent = new Intent(this, FilePickerActivity.class);
@@ -128,6 +155,15 @@ public class MainActivity extends AppCompatActivity
         saveSaveStateLauncher.launch(intent);
     }
 
+    private void loadSaveState()
+    {
+        Intent intent = new Intent(this, SelectSaveStateActivity.class);
+        intent.putExtra(SelectSaveStateActivity.EXTRA_SAVE_STATE_DIRECTORY, SAVE_STATE_DIR);
+        intent.putExtra(SelectSaveStateActivity.EXTRA_SAVE_STATE_THUMBNAIL_DIRECTORY, SAVE_STATE_THUMBNAIL_DIR);
+        intent.putExtra(SelectSaveStateActivity.EXTRA_IS_LOADING, true);
+        loadSaveStateLauncher.launch(intent);
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item)
     {
@@ -140,6 +176,8 @@ public class MainActivity extends AppCompatActivity
             autoSaveRAMAndRTC();
         if (id == R.id.menu_save_state)
             saveSaveState();
+        if (id == R.id.menu_load_state)
+            loadSaveState();
 
         return true;
     }
@@ -215,6 +253,7 @@ public class MainActivity extends AppCompatActivity
         registerFilePickerLauncher();
         registerAddRomLauncher();
         registerSaveSaveState();
+        registerLoadSaveState();
         initUI();
 
         File internalFilesDir = this.getBaseContext().getFilesDir();
@@ -278,4 +317,5 @@ public class MainActivity extends AppCompatActivity
 
     public native void pauseEmulator(boolean pause);
     public native void saveSaveState(String saveStatePath, String imagePath);
+    public native void loadSaveState(String saveStatePath);
 }

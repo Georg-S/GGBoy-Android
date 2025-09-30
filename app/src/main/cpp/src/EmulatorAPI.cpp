@@ -15,14 +15,18 @@ extern "C" JNIEXPORT void JNICALL Java_com_example_ggboy_MainActivity_initEmulat
 
 extern "C" JNIEXPORT void JNICALL Java_com_example_ggboy_MainActivity_loadROM(JNIEnv* env, jobject /* this */, jstring romPath)
 {
-    std::string pathStr = env->GetStringUTFChars(romPath, nullptr);
+    auto cstr = env->GetStringUTFChars(romPath, nullptr);
+    std::string pathStr = cstr;
     s_emulator->setROM(pathStr);
+    env->ReleaseStringUTFChars(romPath, cstr);
 }
 
 extern "C" JNIEXPORT void JNICALL Java_com_example_ggboy_MainActivity_setBasePath(JNIEnv* env, jobject /* this */, jstring appDataPath)
 {
-    std::string pathStr = env->GetStringUTFChars(appDataPath, nullptr);
+    auto cstr = env->GetStringUTFChars(appDataPath, nullptr);;
+    std::string pathStr = cstr;
     s_emulator->setBasePath(pathStr);
+    env->ReleaseStringUTFChars(appDataPath, cstr);
 }
 
 extern "C" JNIEXPORT void JNICALL Java_com_example_ggboy_Renderer_runRenderer(JNIEnv* env, jobject obj)
@@ -44,6 +48,8 @@ extern "C" JNIEXPORT void JNICALL Java_com_example_ggboy_Renderer_runRenderer(JN
         env->CallVoidMethod(obj, method, array);
         env->DeleteLocalRef(array);
     }
+
+    env->DeleteLocalRef(rendererClass);
 }
 
 extern "C" JNIEXPORT void JNICALL Java_com_example_ggboy_MainActivity_setButtonState(JNIEnv* env, jobject /* this */, jint buttonID, jboolean pressed)
@@ -64,12 +70,17 @@ extern "C" JNIEXPORT void JNICALL Java_com_example_ggboy_Renderer_updateMessages
 static jobjectArray getJavaArrayMessages(EmulatorMessage::MessageType type, JNIEnv* env)
 {
     auto messages = s_emulator->getMessageHandler()->getMessages(type);
-    auto javaArray = env->NewObjectArray(messages.size(),
-                                         env->FindClass("java/lang/String"),
-                                         env->NewStringUTF(""));
+    jclass stringClass = env->FindClass("java/lang/String");
+    jstring emptyString = env->NewStringUTF("");
+    auto javaArray = env->NewObjectArray(messages.size(), stringClass, emptyString);
+    env->DeleteLocalRef(stringClass);
+    env->DeleteLocalRef(emptyString);
+
     for (size_t i = 0; i < messages.size(); i++)
     {
-        env->SetObjectArrayElement(javaArray, i, env->NewStringUTF(messages[i].c_str()));
+        jstring stringElement = env->NewStringUTF(messages[i].c_str());
+        env->SetObjectArrayElement(javaArray, i, stringElement);
+        env->DeleteLocalRef(stringElement);
     }
 
     return javaArray;
@@ -105,4 +116,12 @@ extern "C" JNIEXPORT void JNICALL Java_com_example_ggboy_MainActivity_saveSaveSt
 
     env->ReleaseStringUTFChars(saveStatePath, cstr1);
     env->ReleaseStringUTFChars(imagePath, cstr2);
+}
+
+extern "C" JNIEXPORT void JNICALL Java_com_example_ggboy_MainActivity_loadSaveState(JNIEnv* env, jobject /* this */, jstring saveStatePath)
+{
+    auto cstr = env->GetStringUTFChars(saveStatePath, nullptr);
+    std::string saveState = cstr;
+    s_emulator->loadSaveState(saveState);
+    env->ReleaseStringUTFChars(saveStatePath, cstr);
 }

@@ -30,15 +30,6 @@ bool AndroidRenderer::writeLastImage(const std::filesystem::path &path)
     if (m_image.empty())
         return false;
 
-    auto dir = path.parent_path();
-    std::error_code ec;
-    if (!std::filesystem::exists(path, ec))
-    {
-        std::filesystem::create_directories(dir, ec);
-        if (ec)
-            return false;
-    }
-
     std::ofstream outFile(path, std::ios::binary);
     if (!outFile)
         return false;

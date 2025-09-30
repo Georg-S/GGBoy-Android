@@ -28,6 +28,7 @@ public:
     EmulatorMessageHandler* getMessageHandler();
     void setPause(bool pause);
     void saveSaveStateAndLastImage(std::string saveStatePath, std::string imagePath);
+    void loadSaveState(std::string saveStatePath);
 
 private:
     void runInThread();
@@ -53,6 +54,7 @@ private:
     std::filesystem::path m_basePath;
     std::filesystem::path m_toSaveSaveStatePath;
     std::filesystem::path m_toSaveImagePath;
+    std::filesystem::path m_toLoadSaveState;
     std::mutex m_inputMutex;
     std::mutex m_emulatorEventsMutex;
 };

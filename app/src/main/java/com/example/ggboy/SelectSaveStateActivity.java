@@ -22,7 +22,8 @@ public class SelectSaveStateActivity extends AppCompatActivity
     private final String baseFileName = "SaveState ";
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_selectsavestate);
 
@@ -31,19 +32,6 @@ public class SelectSaveStateActivity extends AppCompatActivity
         boolean isLoading = getIntent().getBooleanExtra(EXTRA_IS_LOADING, false);
 
         File internalFilesDir = getFilesDir();
-        var saveStateFiles = Utility.getFilesInDirectory(internalFilesDir + "/" + saveStateDirectory);
-
-        if (saveStateDirectory == null && saveStateThumbnailDirectory == null)
-        {
-            int b = 3;
-        }
-
-        if (isLoading && saveStateFiles.isEmpty())
-        {
-            setResult(NO_FILES);
-            finish();
-            return;
-        }
 
         RecyclerView recyclerView = findViewById(R.id.recyclerViewSaveStates);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -58,9 +46,30 @@ public class SelectSaveStateActivity extends AppCompatActivity
                 var saveStateThumbnailPath = internalFilesDir + "/" + saveStateThumbnailDirectory + "/" + saveStateFilename;
                 saveStates.add(new SaveState(saveStateFilename, saveStateFilePath, saveStateThumbnailPath));
             }
+        } else
+        {
+            var saveStateFiles = Utility.getFilesInDirectory(internalFilesDir + "/" + saveStateDirectory);
+            if (saveStateFiles.isEmpty())
+            {
+                setResult(NO_FILES);
+                finish();
+                return;
+            }
+
+            for (File file : saveStateFiles)
+            {
+                if (!file.isFile())
+                    continue;
+                var saveStateFilename = file.getName();
+                var saveStateFilePath = file.getAbsolutePath();
+                // Doesn't matter if the file does not exist, this will be checked in the SaveStateAdapter
+                var saveStateThumbnailPath = internalFilesDir + "/" + saveStateThumbnailDirectory + "/" + saveStateFilename;
+                saveStates.add(new SaveState(saveStateFilename, saveStateFilePath, saveStateThumbnailPath));
+            }
         }
 
-        SaveStateAdapter adapter = new SaveStateAdapter(saveStates, saveState -> {
+        SaveStateAdapter adapter = new SaveStateAdapter(saveStates, saveState ->
+        {
             Intent resultIntent = new Intent();
             resultIntent.putExtra(EXTRA_OUT_FILE_PATH, saveState.getFilePath());
             resultIntent.putExtra(EXTRA_OUT_THUMBNAIL_PATH, saveState.getThumbnailPath());

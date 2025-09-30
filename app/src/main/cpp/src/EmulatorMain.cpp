@@ -49,6 +49,20 @@ static std::time_t to_time_t(TP tp)
     return system_clock::to_time_t(sctp);
 }
 
+static bool createDirectoriesForFilePath(const std::filesystem::path& filePath)
+{
+    auto dir = filePath.parent_path();
+    std::error_code ec;
+    if (!std::filesystem::exists(filePath, ec))
+    {
+        std::filesystem::create_directories(dir, ec);
+        if (ec)
+            return false;
+    }
+
+    return std::filesystem::is_directory(dir, ec);
+}
+
 EmulatorMain::EmulatorMain()
 {
     m_messageHandler = std::make_unique<EmulatorMessageHandler>();
@@ -117,14 +131,32 @@ void EmulatorMain::runInThread()
         if (!m_toSaveSaveStatePath.empty())
         {
             assert(!m_toSaveImagePath.empty());
-            const bool saveStateWritten = m_emulator->saveEmulatorState(m_toSaveSaveStatePath);
+            bool saveStateWritten = false;
+            if (!createDirectoriesForFilePath(m_toSaveSaveStatePath))
+                m_messageHandler->addMessage(EmulatorMessage::Warning, "Unable to create directories for save state file");
+            else
+                saveStateWritten = m_emulator->saveEmulatorState(m_toSaveSaveStatePath);
+
             if (!saveStateWritten)
+            {
                 m_messageHandler->addMessage(EmulatorMessage::Warning, "Was not able to write the save state");
-            if (saveStateWritten && !m_androidRenderer->writeLastImage(m_toSaveImagePath))
-                m_messageHandler->addMessage(EmulatorMessage::Warning, "Was not able to write the save state image");
+            }
+            else
+            {
+                if (!createDirectoriesForFilePath(m_toSaveImagePath))
+                    m_messageHandler->addMessage(EmulatorMessage::Warning, "Unable to create directories for save state image file");
+                else if (!m_androidRenderer->writeLastImage(m_toSaveImagePath))
+                        m_messageHandler->addMessage(EmulatorMessage::Warning, "Was not able to write the save state image");
+            }
 
             m_toSaveSaveStatePath.clear();
             m_toSaveImagePath.clear();
+        }
+        if (!m_toLoadSaveState.empty())
+        {
+            if (!m_emulator->loadEmulatorState(m_toLoadSaveState))
+                m_messageHandler->addMessage(EmulatorMessage::Warning, "Was not able to load save state");
+            m_toLoadSaveState.clear();
         }
         if (m_pauseRequest)
         {
@@ -228,6 +260,12 @@ void EmulatorMain::saveSaveStateAndLastImage(std::string saveStatePath, std::str
     std::scoped_lock lock(m_emulatorEventsMutex);
     m_toSaveSaveStatePath = std::move(saveStatePath);
     m_toSaveImagePath = std::move(imagePath);
+}
+
+void EmulatorMain::loadSaveState(std::string saveStatePath)
+{
+    std::scoped_lock lock(m_emulatorEventsMutex);
+    m_toLoadSaveState = std::move(saveStatePath);
 }
 
 std::string EmulatorMain::getCartridgeName()
