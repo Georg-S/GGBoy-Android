@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:id="@+id/constraint"
 	xmlns:app="http://schemas.android.com/apk/res-auto"
 	xmlns:tools="http://schemas.android.com/tools"
 	android:layout_width="match_parent"
@@ -15,16 +16,12 @@
 
 	<com.example.ggboy.DPadView
 		android:id="@+id/dpad"
-		android:layout_width="135dp"
-		android:layout_height="135dp"
-		android:layout_alignParentLeft="true"
-		android:layout_centerVertical="true"
-		app:layout_constraintBottom_toBottomOf="@+id/emulator_surface"
-		app:layout_constraintEnd_toEndOf="parent"
-		app:layout_constraintHorizontal_bias="0.134"
+		android:layout_width="0dp"
+		android:layout_height="0dp"
+		app:layout_constraintWidth_percent="0.3"
+		app:layout_constraintDimensionRatio="1:1"
 		app:layout_constraintStart_toStartOf="parent"
-		app:layout_constraintTop_toTopOf="parent"
-		app:layout_constraintVertical_bias="0.824" />
+		app:layout_constraintTop_toTopOf="parent" />
 
 	<com.example.ggboy.GameButton
 		android:id="@+id/b_button"
@@ -32,12 +29,11 @@
 		android:layout_height="50dp"
 		android:text="B"
 		app:buttonShape="oval"
-		app:layout_constraintBottom_toBottomOf="parent"
-		app:layout_constraintEnd_toEndOf="parent"
-		app:layout_constraintHorizontal_bias="0.68"
-		app:layout_constraintStart_toStartOf="parent"
-		app:layout_constraintTop_toTopOf="parent"
-		app:layout_constraintVertical_bias="0.78" />
+		android:textColor="@android:color/white"
+		app:autoSizeTextType="uniform"
+		app:autoSizeMinTextSize="8sp"
+		app:autoSizeMaxTextSize="30sp"
+		app:autoSizeStepGranularity="1sp" />
 
 	<com.example.ggboy.GameButton
 		android:id="@+id/a_button"
@@ -45,26 +41,24 @@
 		android:layout_height="50dp"
 		android:text="A"
 		app:buttonShape="oval"
-		app:layout_constraintBottom_toBottomOf="parent"
-		app:layout_constraintEnd_toEndOf="parent"
-		app:layout_constraintHorizontal_bias="0.86"
-		app:layout_constraintStart_toStartOf="parent"
-		app:layout_constraintTop_toTopOf="parent"
-		app:layout_constraintVertical_bias="0.71000004" />
+		android:textColor="@android:color/white"
+		app:autoSizeTextType="uniform"
+		app:autoSizeMinTextSize="8sp"
+		app:autoSizeMaxTextSize="30sp"
+		app:autoSizeStepGranularity="1sp" />
 
 	<com.example.ggboy.GameButton
 		android:id="@+id/start_button"
-		android:layout_width="80dp"
-		android:layout_height="30dp"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
 		android:padding="4dp"
 		android:text="START"
-		app:buttonShape="rectangle"
-		app:layout_constraintBottom_toBottomOf="parent"
-		app:layout_constraintEnd_toEndOf="parent"
-		app:layout_constraintHorizontal_bias="0.743"
-		app:layout_constraintStart_toStartOf="parent"
-		app:layout_constraintTop_toTopOf="parent"
-		app:layout_constraintVertical_bias="0.958" />
+		android:textColor="@android:color/white"
+		app:autoSizeTextType="uniform"
+		app:autoSizeMinTextSize="8sp"
+		app:autoSizeMaxTextSize="30sp"
+		app:autoSizeStepGranularity="1sp"
+		app:buttonShape="rectangle"/>
 
 	<com.example.ggboy.GameButton
 		android:id="@+id/select_button"
@@ -72,12 +66,11 @@
 		android:layout_height="30dp"
 		android:padding="4dp"
 		android:text="SELECT"
-		app:buttonShape="rectangle"
-		app:layout_constraintBottom_toBottomOf="parent"
-		app:layout_constraintEnd_toEndOf="parent"
-		app:layout_constraintHorizontal_bias="0.368"
-		app:layout_constraintStart_toStartOf="parent"
-		app:layout_constraintTop_toTopOf="parent"
-		app:layout_constraintVertical_bias="0.958" />
+		android:textColor="@android:color/white"
+		app:autoSizeTextType="uniform"
+		app:autoSizeMinTextSize="8sp"
+		app:autoSizeMaxTextSize="30sp"
+		app:autoSizeStepGranularity="1sp"
+		app:buttonShape="rectangle"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

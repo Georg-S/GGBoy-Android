@@ -27,11 +27,13 @@ public class Renderer implements SurfaceHolder.Callback
     // We don't want to update the messages in every tick (performance overhead)
     private int updateMessagesCounter = 0;
     private final ReentrantLock lock = new ReentrantLock();
-    private boolean paused = false;
+    private boolean paused = true;
+    private MainActivityLayouting layouting = null;
 
-    public Renderer(MainActivity activity)
+    public Renderer(MainActivity activity, MainActivityLayouting layouting)
     {
         this.mainActivity = activity;
+        this.layouting = layouting;
     }
 
     public void setMainThread(android.os.Handler handler)
@@ -44,7 +46,7 @@ public class Renderer implements SurfaceHolder.Callback
         landscape.set(value);
     }
 
-    public void run()
+    private void run()
     {
         thread = new Thread(() ->
         {
@@ -65,6 +67,7 @@ public class Renderer implements SurfaceHolder.Callback
                 lock.unlock();
             }
         });
+        isRunning = true;
         thread.start();
     }
 
@@ -138,16 +141,11 @@ public class Renderer implements SurfaceHolder.Callback
         final boolean isInLandscape = landscape.get();
 
         Canvas canvas = holder.lockCanvas();
-        int screenWidth = canvas.getWidth();
-        int screenHeight = canvas.getHeight();
-        final float scaling = calculateMaxUniformScale(screenWidth, screenHeight);
         var bitmap = createBitMapFromEmulatorBinaryImage(rgbBytes);
 
-        int imageWidth = (int) (GAMEBOY_IMAGE_WIDTH * scaling);
-        int imageHeight = (int) (GAMEBOY_IMAGE_HEIGHT * scaling);
-        int startX = 0;
-        if (isInLandscape)
-            startX = (screenWidth - imageWidth) / 2;
+        int imageWidth = layouting.getEmulatorImageWidth();
+        int imageHeight = layouting.getEmulatorImageHeight();
+        int startX = layouting.getEmulatorImageStartX();
 
         Rect destRect = new Rect(startX, 0, startX + imageWidth, imageHeight);
         canvas.drawBitmap(bitmap, null, destRect, null);
@@ -158,7 +156,7 @@ public class Renderer implements SurfaceHolder.Callback
     public void stop()
     {
         isRunning = false;
-        if (thread.isAlive())
+        if (thread != null && thread.isAlive())
         {
             try
             {
@@ -180,7 +178,9 @@ public class Renderer implements SurfaceHolder.Callback
     @Override
     public void surfaceCreated(@NonNull SurfaceHolder holder)
     {
+        stop();
         this.holder = holder;
+        layouting.applyLayout(landscape.get());
         if (!isRunning)
         {
             isRunning = true;

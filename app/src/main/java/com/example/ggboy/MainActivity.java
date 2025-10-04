@@ -10,9 +10,11 @@ import android.content.res.Configuration;
 import android.net.Uri;
 
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.util.DisplayMetrics;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.os.Bundle;
@@ -36,6 +38,7 @@ public class MainActivity extends AppCompatActivity
     private ActivityResultLauncher<Intent> addRomLauncher;
     private ActivityResultLauncher<Intent> saveSaveStateLauncher;
     private ActivityResultLauncher<Intent> loadSaveStateLauncher;
+    private MainActivityLayouting layouting;
 
     // Used to load the 'GGBoy-Android' library on application startup.
     static
@@ -72,8 +75,7 @@ public class MainActivity extends AppCompatActivity
                         String selectedFile = result.getData().getStringExtra("selectedFile");
                         loadROM(selectedFile);
                         return;
-                    }
-                    else if (resultCode == RESULT_CANCELED)
+                    } else if (resultCode == RESULT_CANCELED)
                     {
                         return;
                     }
@@ -82,7 +84,8 @@ public class MainActivity extends AppCompatActivity
         );
     }
 
-    private void registerSaveSaveState() {
+    private void registerSaveSaveState()
+    {
         saveSaveStateLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result ->
@@ -94,8 +97,7 @@ public class MainActivity extends AppCompatActivity
                         String thumbnailPath = result.getData().getStringExtra(SelectSaveStateActivity.EXTRA_OUT_THUMBNAIL_PATH);
                         saveSaveState(filePath, thumbnailPath);
                         return;
-                    }
-                    else if (resultCode == RESULT_CANCELED)
+                    } else if (resultCode == RESULT_CANCELED)
                     {
                         return;
                     }
@@ -104,7 +106,8 @@ public class MainActivity extends AppCompatActivity
         );
     }
 
-    private void registerLoadSaveState() {
+    private void registerLoadSaveState()
+    {
         loadSaveStateLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result ->
@@ -115,12 +118,10 @@ public class MainActivity extends AppCompatActivity
                         String filePath = result.getData().getStringExtra(SelectSaveStateActivity.EXTRA_OUT_FILE_PATH);
                         loadSaveState(filePath);
                         return;
-                    }
-                    else if (resultCode == RESULT_CANCELED)
+                    } else if (resultCode == RESULT_CANCELED)
                     {
                         return;
-                    }
-                    else if (resultCode == SelectSaveStateActivity.NO_FILES)
+                    } else if (resultCode == SelectSaveStateActivity.NO_FILES)
                     {
                         displayInfo("No save states found");
                         return;
@@ -192,9 +193,6 @@ public class MainActivity extends AppCompatActivity
 
     private void initUI()
     {
-        SurfaceView surfaceView = findViewById(R.id.emulator_surface);
-        surfaceView.getHolder().addCallback(renderer);
-
         dpad = findViewById(R.id.dpad);
         dpad.setActivity(this);
 
@@ -206,6 +204,9 @@ public class MainActivity extends AppCompatActivity
         b_button.init(this, GGBoyButton.B);
         start_button.init(this, GGBoyButton.START);
         select_button.init(this, GGBoyButton.SELECT);
+
+        SurfaceView surfaceView = findViewById(R.id.emulator_surface);
+        surfaceView.getHolder().addCallback(renderer);
     }
 
     @Override
@@ -246,7 +247,8 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main); // Set initial layout
 
-        renderer = new Renderer(this);
+        layouting = new MainActivityLayouting(this);
+        renderer = new Renderer(this, layouting);
         renderer.setMainThread(new Handler(Looper.getMainLooper()));
 
         initEmulator();
@@ -262,21 +264,24 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    protected void onPause() {
+    protected void onPause()
+    {
         renderer.setPaused(true);
         super.onPause();
         pauseEmulator(true);
     }
 
     @Override
-    protected void onStop() {
+    protected void onStop()
+    {
         renderer.setPaused(true);
         super.onStop();
         pauseEmulator(true);
     }
 
     @Override
-    protected void onResume() {
+    protected void onResume()
+    {
         renderer.setPaused(false);
         super.onResume();
         pauseEmulator(false);
@@ -316,6 +321,8 @@ public class MainActivity extends AppCompatActivity
     public native void setBasePath(String basePath);
 
     public native void pauseEmulator(boolean pause);
+
     public native void saveSaveState(String saveStatePath, String imagePath);
+
     public native void loadSaveState(String saveStatePath);
 }
