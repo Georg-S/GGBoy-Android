@@ -125,3 +125,9 @@ extern "C" JNIEXPORT void JNICALL Java_com_example_ggboy_MainActivity_loadSaveSt
     s_emulator->loadSaveState(saveState);
     env->ReleaseStringUTFChars(saveStatePath, cstr);
 }
+
+
+extern "C" JNIEXPORT void JNICALL Java_com_example_ggboy_MainActivity_setEmulationSpeed(JNIEnv* env, jobject /* this */, jdouble emulationSpeed)
+{
+    s_emulator->setEmulationSpeed(emulationSpeed);
+}

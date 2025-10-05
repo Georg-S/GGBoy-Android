@@ -7,6 +7,7 @@
 #include <Emulator.hpp>
 #include <RenderingUtility.hpp>
 #include <thread>
+#include <optional>
 
 #include "Video.hpp"
 #include "Audio.hpp"
@@ -29,6 +30,7 @@ public:
     void setPause(bool pause);
     void saveSaveStateAndLastImage(std::string saveStatePath, std::string imagePath);
     void loadSaveState(std::string saveStatePath);
+    void setEmulationSpeed(double emulationSpeed);
 
 private:
     void runInThread();
@@ -50,6 +52,7 @@ private:
     std::atomic<bool> m_saveRAMAndRTC = false;
     bool m_pauseRequest = false;
     bool m_pauseValue = false;
+    std::optional<double> m_emulationSpeed = std::nullopt;
     std::filesystem::path m_romToBeLoaded;
     std::filesystem::path m_basePath;
     std::filesystem::path m_toSaveSaveStatePath;

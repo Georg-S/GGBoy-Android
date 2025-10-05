@@ -128,6 +128,11 @@ void EmulatorMain::runInThread()
             autoSaveCartridgeRTC();
             m_saveRAMAndRTC = false;
         }
+        if (m_emulationSpeed)
+        {
+            m_emulator->setEmulationSpeed(*m_emulationSpeed);
+            m_emulationSpeed.reset();
+        }
         if (!m_toSaveSaveStatePath.empty())
         {
             assert(!m_toSaveImagePath.empty());
@@ -267,6 +272,13 @@ void EmulatorMain::loadSaveState(std::string saveStatePath)
     std::scoped_lock lock(m_emulatorEventsMutex);
     m_toLoadSaveState = std::move(saveStatePath);
 }
+
+void EmulatorMain::setEmulationSpeed(double emulationSpeed)
+{
+    std::scoped_lock lock(m_emulatorEventsMutex);
+    m_emulationSpeed = emulationSpeed;
+}
+
 
 std::string EmulatorMain::getCartridgeName()
 {

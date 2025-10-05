@@ -24,8 +24,8 @@
         app:showAsAction="never" />
 
     <item
-        android:id="@+id/menu_debug_info"
-        android:title="Debug Information"
+        android:id="@+id/menu_emulation_speed"
+        android:title="Emulation Speed"
         app:showAsAction="never" />
 
 </menu>

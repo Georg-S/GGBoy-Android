@@ -165,6 +165,19 @@ public class MainActivity extends AppCompatActivity
         loadSaveStateLauncher.launch(intent);
     }
 
+    private void handleEmulationSpeedSelection()
+    {
+        final String[] speeds = {"1", "2", "3", "4", "5"};
+        new AlertDialog.Builder(this)
+                .setTitle("Select Emulation Speed")
+                .setItems(speeds, (dialog, which) ->
+                {
+                    int speed = which + 1;
+                    setEmulationSpeed(speed);
+                })
+                .show();
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item)
     {
@@ -179,7 +192,8 @@ public class MainActivity extends AppCompatActivity
             saveSaveState();
         if (id == R.id.menu_load_state)
             loadSaveState();
-
+        if (id == R.id.menu_emulation_speed)
+            handleEmulationSpeedSelection();
         return true;
     }
 
@@ -325,4 +339,6 @@ public class MainActivity extends AppCompatActivity
     public native void saveSaveState(String saveStatePath, String imagePath);
 
     public native void loadSaveState(String saveStatePath);
+
+    public native void setEmulationSpeed(double emulationSpeed);
 }
