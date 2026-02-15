@@ -68,8 +68,7 @@ EmulatorMain::EmulatorMain()
     m_messageHandler = std::make_unique<EmulatorMessageHandler>();
     m_emulator = std::make_unique<ggb::Emulator>();
     m_audioHandler = std::make_unique<Audio>(m_emulator->getSampleBuffer(), m_messageHandler.get());
-    auto inputHandler = std::make_unique<InputHandler>();
-    m_inputHandler = inputHandler.get();
+    m_inputHandler = std::make_unique<InputHandler>();
 
     auto tileDataDimensions = m_emulator->getTileDataDimensions();
     auto gameWindowDimensions = m_emulator->getGameWindowDimensions();
@@ -78,7 +77,6 @@ EmulatorMain::EmulatorMain()
     m_androidRenderer = gameRenderer.get();
 
     m_emulator->setGameRenderer(std::move(gameRenderer));
-    m_emulator->setInput(std::move(inputHandler));
 }
 
 EmulatorMain::~EmulatorMain()
@@ -114,8 +112,7 @@ void EmulatorMain::runInThread()
 
     auto inputTimer = Timer(NANO_SECONDS_PER_SECOND / 100, [this]()
     {
-        m_inputHandler->updateButtonStates();
-        m_inputHandler->update();
+        m_emulator->setInputState(m_inputHandler->getButtonState());
     });
 
     auto emulatorEventsTimer = Timer(NANO_SECONDS_PER_SECOND / 3, [this, &running]()

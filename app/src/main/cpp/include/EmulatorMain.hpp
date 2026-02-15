@@ -46,7 +46,7 @@ private:
     std::unique_ptr<EmulatorMessageHandler> m_messageHandler = nullptr;
     std::unique_ptr<ggb::Emulator> m_emulator = nullptr;
     std::unique_ptr<Audio> m_audioHandler = nullptr;
-    InputHandler* m_inputHandler = nullptr;
+    std::unique_ptr<InputHandler> m_inputHandler = nullptr;
     AndroidRenderer* m_androidRenderer = nullptr;
     std::atomic<bool> m_quit = false;
     std::atomic<bool> m_saveRAMAndRTC = false;

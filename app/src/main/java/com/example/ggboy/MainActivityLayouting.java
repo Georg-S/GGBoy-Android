@@ -60,10 +60,10 @@ public class MainActivityLayouting
         ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams) dpad.getLayoutParams();
 
         // Calculate desired sizes and margins
-        int dpadSize = (int) (0.35f * screenWidth);
+        int dpadSize = (int) (0.4f * screenWidth);
         int leftMargin = (int) (0.05f * screenWidth);
 //        int topMargin = emulatorImageHeight + (int)(0.04f * screenHeight);
-        int dpadTopMargin = emulatorImageHeight + Math.max(20, (remainingHeight / 2) - dpadSize);
+        int dpadTopMargin = emulatorImageHeight + Math.max(20, (remainingHeight - dpadSize) / 3); // Divided by 3 is a somewhat arbitrary value
 
         params.width = dpadSize;
         params.height = dpadSize;
@@ -108,7 +108,7 @@ public class MainActivityLayouting
         selectButton.setLayoutParams(selectParams);
 
         // --- A & B BUTTONS ---
-        int abSize = (int) (0.15 * screenWidth);
+        int abSize = (int) (0.175 * screenWidth);
         int abTopMargin = dpadTopMargin;
         int abRightMargin = (int) (0.05f * screenWidth);
 
