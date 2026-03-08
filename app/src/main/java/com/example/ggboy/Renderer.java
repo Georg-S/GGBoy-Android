@@ -17,7 +17,6 @@ public class Renderer implements SurfaceHolder.Callback
     private static final int GAMEBOY_IMAGE_WIDTH = 160;
     private static final int GAMEBOY_IMAGE_HEIGHT = 144;
     private static final int UPDATE_MESSAGES_AFTER_STEPS = 30;
-    private AtomicBoolean landscape = new AtomicBoolean(false);
     private SurfaceHolder holder;
     private Thread thread;
     private volatile boolean isRunning = false;
@@ -39,11 +38,6 @@ public class Renderer implements SurfaceHolder.Callback
     public void setMainThread(android.os.Handler handler)
     {
         this.mainThread = handler;
-    }
-
-    public void setLandscape(boolean value)
-    {
-        landscape.set(value);
     }
 
     private void run()
@@ -138,7 +132,7 @@ public class Renderer implements SurfaceHolder.Callback
         if (rgbBytes.length == 0)
             return;
 
-        final boolean isInLandscape = landscape.get();
+        final boolean isInLandscape = layouting.isLandscape();
 
         Canvas canvas = holder.lockCanvas();
         var bitmap = createBitMapFromEmulatorBinaryImage(rgbBytes);
@@ -180,7 +174,7 @@ public class Renderer implements SurfaceHolder.Callback
     {
         stop();
         this.holder = holder;
-        layouting.applyLayout(landscape.get());
+        layouting.applyLayout();
         if (!isRunning)
         {
             isRunning = true;

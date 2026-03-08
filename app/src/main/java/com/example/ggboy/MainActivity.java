@@ -232,7 +232,7 @@ public class MainActivity extends AppCompatActivity
         if (renderer != null)
         {
             renderer.stop();
-            renderer.setLandscape(isLandscape);
+            layouting.setLandscape(isLandscape);
         }
 
         ActionBar bar = getSupportActionBar();
@@ -262,6 +262,7 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main); // Set initial layout
 
         layouting = new MainActivityLayouting(this);
+        layouting.setLandscape(getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE);
         renderer = new Renderer(this, layouting);
         renderer.setMainThread(new Handler(Looper.getMainLooper()));
 

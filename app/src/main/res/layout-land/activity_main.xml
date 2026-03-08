@@ -11,21 +11,13 @@
 		android:id="@+id/emulator_surface"
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"
-		tools:layout_editor_absoluteX="-35dp"
-		tools:layout_editor_absoluteY="65dp" />
+	/>
 
 	<com.example.ggboy.DPadView
 		android:id="@+id/dpad"
 		android:layout_width="120dp"
 		android:layout_height="120dp"
-		android:layout_alignParentLeft="true"
-		android:layout_centerVertical="true"
-		app:layout_constraintBottom_toBottomOf="@+id/emulator_surface"
-		app:layout_constraintEnd_toEndOf="parent"
-		app:layout_constraintHorizontal_bias="0.01"
-		app:layout_constraintStart_toStartOf="parent"
-		app:layout_constraintTop_toTopOf="parent"
-		app:layout_constraintVertical_bias="0.68" />
+	/>
 
 	<com.example.ggboy.GameButton
 		android:id="@+id/b_button"
@@ -33,12 +25,7 @@
 		android:layout_height="50dp"
 		android:text="B"
 		app:buttonShape="oval"
-		app:layout_constraintBottom_toBottomOf="parent"
-		app:layout_constraintEnd_toEndOf="parent"
-		app:layout_constraintHorizontal_bias="0.903"
-		app:layout_constraintStart_toStartOf="parent"
-		app:layout_constraintTop_toTopOf="parent"
-		app:layout_constraintVertical_bias="0.709" />
+	/>
 
 	<com.example.ggboy.GameButton
 		android:id="@+id/a_button"
@@ -46,12 +33,7 @@
 		android:layout_height="50dp"
 		android:text="A"
 		app:buttonShape="oval"
-		app:layout_constraintBottom_toBottomOf="parent"
-		app:layout_constraintEnd_toEndOf="parent"
-		app:layout_constraintHorizontal_bias="0.976"
-		app:layout_constraintStart_toStartOf="parent"
-		app:layout_constraintTop_toTopOf="parent"
-		app:layout_constraintVertical_bias="0.57" />
+	/>
 
 	<com.example.ggboy.GameButton
 		android:id="@+id/start_button"
@@ -60,12 +42,7 @@
 		android:padding="4dp"
 		android:text="START"
 		app:buttonShape="rectangle"
-		app:layout_constraintBottom_toBottomOf="parent"
-		app:layout_constraintEnd_toEndOf="parent"
-		app:layout_constraintHorizontal_bias="0.93"
-		app:layout_constraintStart_toStartOf="parent"
-		app:layout_constraintTop_toTopOf="parent"
-		app:layout_constraintVertical_bias="0.958" />
+	/>
 
 	<com.example.ggboy.GameButton
 		android:id="@+id/select_button"
@@ -74,11 +51,6 @@
 		android:padding="4dp"
 		android:text="SELECT"
 		app:buttonShape="rectangle"
-		app:layout_constraintBottom_toBottomOf="parent"
-		app:layout_constraintEnd_toEndOf="parent"
-		app:layout_constraintHorizontal_bias="0.07"
-		app:layout_constraintStart_toStartOf="parent"
-		app:layout_constraintTop_toTopOf="parent"
-		app:layout_constraintVertical_bias="0.958" />
+	/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
