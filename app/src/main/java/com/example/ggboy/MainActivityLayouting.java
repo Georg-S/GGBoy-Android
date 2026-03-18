@@ -14,11 +14,11 @@ public class MainActivityLayouting
 {
     private static final int GAMEBOY_IMAGE_WIDTH = 160;
     private static final int GAMEBOY_IMAGE_HEIGHT = 144;
-    private MainActivity mainActivity = null;
+    private final MainActivity mainActivity;
     private int emulatorImageStartX = 0;
     private int emulatorImageWidth = 0;
     private int emulatorImageHeight = 0;
-    private AtomicBoolean landscape = new AtomicBoolean(false);
+    private final AtomicBoolean landscape = new AtomicBoolean(false);
 
     MainActivityLayouting(MainActivity activity)
     {
