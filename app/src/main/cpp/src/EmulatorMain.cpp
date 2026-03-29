@@ -77,6 +77,7 @@ EmulatorMain::EmulatorMain()
     m_androidRenderer = gameRenderer.get();
 
     m_emulator->setGameRenderer(std::move(gameRenderer));
+    m_emulator->setEnergySaving(true);
 }
 
 EmulatorMain::~EmulatorMain()
