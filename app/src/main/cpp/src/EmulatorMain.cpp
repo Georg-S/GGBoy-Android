@@ -116,7 +116,7 @@ void EmulatorMain::runInThread()
         m_emulator->setInputState(m_inputHandler->getButtonState());
     });
 
-    auto emulatorEventsTimer = Timer(NANO_SECONDS_PER_SECOND / 3, [this, &running]()
+    auto emulatorEventsTimer = Timer(NANO_SECONDS_PER_SECOND / 6, [this, &running]()
     {
         std::scoped_lock lock(m_emulatorEventsMutex);
         running = !m_quit;
@@ -130,6 +130,11 @@ void EmulatorMain::runInThread()
         {
             m_emulator->setEmulationSpeed(*m_emulationSpeed);
             m_emulationSpeed.reset();
+        }
+        if (m_emulatorVolume)
+        {
+            m_audioHandler->setVolume(*m_emulatorVolume);
+            m_emulatorVolume.reset();
         }
         if (!m_toSaveSaveStatePath.empty())
         {
@@ -277,6 +282,11 @@ void EmulatorMain::setEmulationSpeed(double emulationSpeed)
     m_emulationSpeed = emulationSpeed;
 }
 
+void EmulatorMain::setEmulatorVolume(int volume)
+{
+    std::scoped_lock lock(m_emulatorEventsMutex);
+    m_emulatorVolume = volume;
+}
 
 std::string EmulatorMain::getCartridgeName()
 {

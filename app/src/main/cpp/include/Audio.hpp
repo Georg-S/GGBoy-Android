@@ -1,6 +1,7 @@
 #pragma once
 #include <Emulator.hpp>
 #include <aaudio/AAudio.h>
+#include <atomic>
 
 #include "EmulatorMessage.hpp"
 
@@ -11,12 +12,14 @@ public:
 	~Audio();
 	void setAudioPlaying(bool value);
 	bool audioPlaying() const;
+    void setVolume(int volume);
 	
 private:
 	struct AudioData 
 	{
 		ggb::SampleBuffer* sampleBuffer = nullptr;
 		ggb::Frame lastReadFrame = {};
+        std::atomic<int> m_volume = 15;
 	};
 
 	bool initializeAudio(ggb::SampleBuffer* sampleBuffer);

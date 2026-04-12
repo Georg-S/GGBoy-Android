@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-
     <item
         android:id="@+id/menu_add_rom"
         android:title="Add ROM" />
@@ -9,7 +8,6 @@
         android:id="@+id/menu_open_rom"
         android:title="Open ROM"
         app:showAsAction="never" />
-
     <item
         android:id="@+id/menu_save_ram"
         android:title="Save RAM" />
@@ -17,15 +15,17 @@
         android:id="@+id/menu_save_state"
         android:title="Save State"
         app:showAsAction="never" />
-
     <item
         android:id="@+id/menu_load_state"
         android:title="Load State"
         app:showAsAction="never" />
-
     <item
         android:id="@+id/menu_emulation_speed"
         android:title="Emulation Speed"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_volume"
+        android:title="Volume"
         app:showAsAction="never" />
 
 </menu>

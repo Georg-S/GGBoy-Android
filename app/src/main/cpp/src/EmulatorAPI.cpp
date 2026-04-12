@@ -131,3 +131,8 @@ extern "C" JNIEXPORT void JNICALL Java_com_example_ggboy_MainActivity_setEmulati
 {
     s_emulator->setEmulationSpeed(emulationSpeed);
 }
+
+extern "C" JNIEXPORT void JNICALL Java_com_example_ggboy_MainActivity_setEmulatorVolume(JNIEnv* env, jobject /* this */, jint volume)
+{
+    s_emulator->setEmulatorVolume(volume);
+}

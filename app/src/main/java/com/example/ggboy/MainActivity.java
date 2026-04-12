@@ -10,11 +10,15 @@ import android.content.res.Configuration;
 import android.net.Uri;
 
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.constraintlayout.widget.ConstraintLayout;
 
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+
+import android.media.AudioManager;
+import android.view.View;
+import android.widget.SeekBar;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.DisplayMetrics;
+import android.content.Context;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.os.Bundle;
@@ -39,6 +43,7 @@ public class MainActivity extends AppCompatActivity
     private ActivityResultLauncher<Intent> saveSaveStateLauncher;
     private ActivityResultLauncher<Intent> loadSaveStateLauncher;
     private MainActivityLayouting layouting;
+    private int currentVolume = 15;
 
     // Used to load the 'GGBoy-Android' library on application startup.
     static
@@ -194,6 +199,8 @@ public class MainActivity extends AppCompatActivity
             loadSaveState();
         if (id == R.id.menu_emulation_speed)
             handleEmulationSpeedSelection();
+        if (id == R.id.menu_volume)
+            showVolumeSlider();
         return true;
     }
 
@@ -267,6 +274,7 @@ public class MainActivity extends AppCompatActivity
         renderer.setMainThread(new Handler(Looper.getMainLooper()));
 
         initEmulator();
+        setEmulatorVolume(currentVolume);
         registerFilePickerLauncher();
         registerAddRomLauncher();
         registerSaveSaveState();
@@ -325,6 +333,44 @@ public class MainActivity extends AppCompatActivity
         Toast.makeText(this, str, Toast.LENGTH_SHORT).show();
     }
 
+    private void showVolumeSlider()
+    {
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
+        View view = getLayoutInflater().inflate(R.layout.bottomsheet_volume, null);
+
+        SeekBar seekBar = view.findViewById(R.id.seekVolume);
+
+        final int minVolume = 0;
+        final int maxVolume = 100;
+        seekBar.setMin(minVolume);
+        seekBar.setMax(maxVolume);
+        seekBar.setProgress(currentVolume);
+
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+        {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
+            {
+                currentVolume = progress;
+                setEmulatorVolume(currentVolume);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar)
+            {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar)
+            {
+            }
+        });
+
+        bottomSheetDialog.setContentView(view);
+        bottomSheetDialog.show();
+    }
+
+
     public native void initEmulator();
 
     public native void loadROM(String romPath);
@@ -342,4 +388,5 @@ public class MainActivity extends AppCompatActivity
     public native void loadSaveState(String saveStatePath);
 
     public native void setEmulationSpeed(double emulationSpeed);
+    public native void setEmulatorVolume(int volume);
 }

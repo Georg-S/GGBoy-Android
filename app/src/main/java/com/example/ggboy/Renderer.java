@@ -132,8 +132,6 @@ public class Renderer implements SurfaceHolder.Callback
         if (rgbBytes.length == 0)
             return;
 
-        final boolean isInLandscape = layouting.isLandscape();
-
         Canvas canvas = holder.lockCanvas();
         var bitmap = createBitMapFromEmulatorBinaryImage(rgbBytes);
 

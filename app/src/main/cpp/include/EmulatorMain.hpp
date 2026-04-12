@@ -31,6 +31,8 @@ public:
     void saveSaveStateAndLastImage(std::string saveStatePath, std::string imagePath);
     void loadSaveState(std::string saveStatePath);
     void setEmulationSpeed(double emulationSpeed);
+    /// Volume goes from 0 to 100
+    void setEmulatorVolume(int volume);
 
 private:
     void runInThread();
@@ -53,6 +55,7 @@ private:
     bool m_pauseRequest = false;
     bool m_pauseValue = false;
     std::optional<double> m_emulationSpeed = std::nullopt;
+    std::optional<int> m_emulatorVolume = std::nullopt;
     std::filesystem::path m_romToBeLoaded;
     std::filesystem::path m_basePath;
     std::filesystem::path m_toSaveSaveStatePath;
