@@ -283,7 +283,6 @@ public class MainActivity extends AppCompatActivity
 
         File internalFilesDir = this.getBaseContext().getFilesDir();
         setBasePath(internalFilesDir.getPath());
-        loadROM("/data/user/0/com.example.ggboy/files/ROMs/Pokemon_Gelbe_Edition.gb");
     }
 
     @Override

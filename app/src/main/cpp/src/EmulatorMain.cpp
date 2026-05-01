@@ -78,6 +78,7 @@ EmulatorMain::EmulatorMain()
 
     m_emulator->setGameRenderer(std::move(gameRenderer));
     m_emulator->setEnergySaving(true);
+    m_emulator->setColorCorrectionEnabled(true);
 }
 
 EmulatorMain::~EmulatorMain()
